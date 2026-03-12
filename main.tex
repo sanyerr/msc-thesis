@@ -424,24 +424,25 @@ Because the Gaussian noise $\theta$ has infinite support, there is a strictly po
 
 \subsection*{Solution: Clipping}
 
-To resolve this, we explicitly constrain the agent's action space to the interval $[0,1]$. Because $S$ is a strictly proper scoring rule, the expected score $V_p(\hat{p})$ is strictly concave in $\hat{p}$. The addition of the linear noise term $\theta \hat{p}$ preserves this strict concavity.
+To resolve this, we explicitly constrain the agent's action space to the valid probability interval $[0, 1]$. Because $S$ is a strictly proper scoring rule, the expected score $V_p(\hat{p})$ is strictly concave in $\hat{p}$. The addition of the linear noise term $\theta\hat{p}$ preserves this strict concavity.
 
-For a strictly concave objective function maximized over a closed interval, if the unconstrained maximum falls outside the interval, the constrained maximum is the nearest boundary point. The agent's actual report is therefore the clipped value:
-$$\hat{p}_c = \max(0, \min(1, \hat{p}_{raw}))$$
+For a strictly concave objective function maximized over a closed interval, if the exact unconstrained maximum $\hat{p}_{exact}$ falls outside the interval, the constrained maximum is the nearest boundary point. The agent's actual report is therefore the clipped value:
+\begin{equation}
+	\hat{p}_c = \max(0, \min(1, \hat{p}_{exact}))
+\end{equation}
 
-We now establish that the continuous Taylor approximation remains valid as a conservative upper bound for the principal's expected loss. Let the true probability be $p \in (0,1)$. Because $p$ lies within the valid interval, clipping a report that falls outside $[0,1]$ strictly moves the report closer to $p$. Mathematically:
-$$|\hat{p}_c - p| \le |\hat{p}_{raw} - p|$$
+We establish that clipping strictly reduces the principal's loss using an exact monotonicity argument, avoiding local Taylor approximations entirely. Let the true probability be $p \in (0,1)$. Because $p$ lies strictly within the valid interval, clipping a report that falls outside $[0,1]$ strictly moves the report closer to $p$:
+\begin{equation}
+	|\hat{p}_c - p| < |\hat{p}_{exact} - p|
+\end{equation}
 
-Squaring both sides and taking the expectation over $\theta$, the expected squared error of the clipped report is strictly bounded above by the variance of the unconstrained report:
-$$\mathbb{E}[(\hat{p}_c - p)^2] \le \mathbb{E}[(\hat{p}_{raw} - p)^2] \approx \frac{\sigma^2}{[G''(p)]^2}$$
+The principal's utility when acting on a valid report $\hat{p} \in [0,1]$ is $W(\hat{p}) \equiv u(d^*(\hat{p}), p)$. By definition of the decision-matched scoring rule, this is exactly the expected score function $V_p(\hat{p})$ analyzed in Proposition 1. As shown in the proof of Proposition 1, $W(\hat{p})$ has a unique stationary point at $\hat{p} = p$, which is a strict maximum. Consequently, $W(\hat{p})$ is strictly increasing on $[0, p]$ and strictly decreasing on $[p, 1]$. Because clipping an out-of-bounds report strictly moves it closer to $p$ to the nearest valid boundary, it strictly increases $W(\hat{p}_c)$ relative to any mathematically valid report further from the truth, thereby minimizing the principal's exact loss $L(\hat{p}) = u(d^*(p), p) - u(d^*(\hat{p}), p)$ given the bounds.
 
-The principal's loss relative to knowing $p$ exactly is approximated by:
-$$L \approx -\frac{1}{2}H(p)(\hat{p} - p)^2$$
+This guarantees that the principal is always strictly better off under the clipped regime when the unconstrained report violates the boundaries, provided the clipped report remains in the neighborhood where $W$ is concave (which is ensured when $\sigma$ is small relative to $\min(p, 1-p)$).
 
- Substituting the unconstrained variance into the expected loss formula yields a strict upper bound on the principal's true expected loss:
-$$\mathbb{E}[L_c | p] \le -\frac{\sigma^2 H(p)}{2[G''(p)]^2}$$
+While clipping guarantees an exact reduction in loss, computing the true expected loss under the clipped distribution is analytically intractable: it requires inverting the nonlinear first-order condition $V_p'(\hat{p}) + \theta = 0$ to obtain $\hat{p}_{exact}(\theta)$ for each noise draw, composing with the clipping and loss functions, and integrating against the Gaussian density---none of which admit closed forms for general $G''$. To optimize the scoring rule, we therefore retain the continuous Taylor approximations for both the agent's error ($\hat{p} - p \approx \frac{\theta}{G''(p)}$) and the principal's loss ($L \approx -\frac{1}{2}H(p)(\hat{p}-p)^2$) to form a surrogate objective function.
 
-Consequently, optimizing the scoring rule against the unconstrained analytical loss formula guarantees the principal at least that level of expected utility under the true, clipped error distribution.
+Optimizing against this unconstrained analytical surrogate does not establish a strict mathematical bound for the exact clipped loss, nor does it guarantee global optimality in the clipped problem. Clipping differentially benefits lower-curvature rules, which produce higher report variance $\sigma^2/[G''(p)]^2$ and hence more probability mass outside $[0,1]$, creating a larger gap between the surrogate and the true loss. The surrogate therefore serves as a tractable heuristic for allocating curvature, which remains highly accurate in the small-noise regime where boundary reports are rare.
 
 \begin{comment}
 \section{Log-odds reparametrization}\label{sec:logodds}
@@ -694,18 +695,6 @@ Several approaches can address this issue:
 \end{enumerate}
 \end{comment}
 \newpage
-\section*{Notes for continuation}
-
-\textbf{Status.} Sections 1--6 set up the model: we set up the principal-agent problem, define the decision-matched scoring rule $S_u$, prove that the scoring rule is proper, define the random utility model with Gaussian noise, transform the problem to log-odds to avoid the unbounded support problem, and define the principal's optimization problem. Section~\ref{sec:limited-liability} solves the optimal scoring rule under limited liability ($S \geq 0$), and we achieve a closed-form solution for optimal curvature.
-
-\textbf{Key results so far.}
-\begin{itemize}
-\item The limited liability constraint $S(\hat{p}, x) \geq 0$ reduces to $G(0) + G'(0) \geq 0$ and $G(1) - G'(1) \geq 0$, both of which bind at optimum.
-\item With boundary conditions $G(0) + G'(0) = 0$ and $G(1) - G'(1) = 0$, $G$ is expressed via a Green's function \eqref{eq:greens} as a linear functional of $g = G''$.
-\item The principal's problem becomes separable in $g$. This lets us optimize point-wise.
-\item The optimal curvature is $|G''(p)|^* = \left(\sigma^2 |H(p)| f(p) / (\alpha |\phi(p)|)\right)^{1/3}$.
-\item $S_u$ is optimal if and only if $|H(p)|^2 |\phi(p)| / f(p) = \text{const}$. This is not generally true for generic utility functions and priors.
-\end{itemize}
 
 \section*{Notes for continuation}
 \textbf{Status.} Sections 1--6 set up the model: we define the principal-agent problem, the decision-matched scoring rule $S_u$, prove properness, introduce the random utility model with Gaussian noise, and formulate the principal's optimization problem. Section~\ref{sec:limited-liability} solves the optimal scoring rule under limited liability ($S \geq 0$), yielding a closed-form solution for optimal curvature \eqref{eq:optimal-curvature}. Section~7 reparametrizes the agent's problem in log-odds, resolving the unbounded-support issue of the probability-space model, and derives the corresponding optimal curvature \eqref{eq:optimal-curvature-logodds}.
