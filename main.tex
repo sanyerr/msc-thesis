@@ -417,10 +417,9 @@ Under the limited liability constraints~\eqref{eq:boundary}, the cost of curvatu
 Under the random utility model, the agent selects a report $\hat{p}$ to maximize their expected score perturbed by linear noise:
 $$\max_{\hat{p}} V_p(\hat{p}) + \theta \hat{p}, \quad \theta \sim N(0, \sigma^2)$$
 
-Applying a first-order Taylor expansion to the first-order condition yields the unconstrained optimal report:
-$$\hat{p}_{raw} \approx p - \frac{\theta}{V_p''(p)} = p + \frac{\theta}{G''(p)}$$
+Let $\hat{p}_{exact}$ denote the exact unconstrained maximizer, i.e.\ the solution to $V_p'(\hat{p}) + \theta = 0$. A first-order Taylor expansion around $p$ gives the approximation $\hat{p}_{exact} \approx p + \theta/G''(p)$.
 
-Because the Gaussian noise $\theta$ has infinite support, there is a strictly positive probability that $\hat{p}_{raw} \notin [0,1]$ for any base rate $p \in (0,1)$ and noise level $\sigma > 0$. This violates the fundamental requirement that the agent's report must be a valid probability.
+Because the Gaussian noise $\theta$ has infinite support, there is a strictly positive probability that $\hat{p}_{exact} \notin [0,1]$ for any base rate $p \in (0,1)$ and noise level $\sigma > 0$. This violates the fundamental requirement that the agent's report must be a valid probability.
 
 \subsection*{Solution: Clipping}
 
@@ -431,18 +430,125 @@ For a strictly concave objective function maximized over a closed interval, if t
 	\hat{p}_c = \max(0, \min(1, \hat{p}_{exact}))
 \end{equation}
 
-We establish that clipping strictly reduces the principal's loss using an exact monotonicity argument, avoiding local Taylor approximations entirely. Let the true probability be $p \in (0,1)$. Because $p$ lies strictly within the valid interval, clipping a report that falls outside $[0,1]$ strictly moves the report closer to $p$:
+We show that among all valid reports $\hat{p} \in [0,1]$, the clipped value $\hat{p}_c$ is optimal for the agent, and that it yields a lower loss for the principal than any report further from the truth.
+
+The principal's utility when acting on a report $\hat{p} \in [0,1]$ is $W(\hat{p}) \equiv u(d^*(\hat{p}), p)$. By definition of the decision-matched scoring rule, this is exactly the expected score function $V_p(\hat{p})$ analyzed in Proposition~\ref{prop:properness}. As shown in the proof of Proposition~\ref{prop:properness}, $W(\hat{p})$ has a unique stationary point at $\hat{p} = p$, which is a strict local maximum. Since $W$ is continuously differentiable on $(0,1)$ and $W'$ has no other zeros, the intermediate value theorem implies that $W'$ cannot change sign on $(0,p)$ or on $(p,1)$. Combined with $W'(p^-) > 0$ and $W'(p^+) < 0$ (from the local maximum), it follows that $W(\hat{p})$ is strictly increasing on $[0, p]$ and strictly decreasing on $[p, 1]$.
+
+When $\hat{p}_{exact} \notin [0,1]$, the clipped report $\hat{p}_c$ is the nearest boundary point (0 or 1). Since $p \in (0,1)$, the boundary point lies strictly between $p$ and $\hat{p}_{exact}$, so $|\hat{p}_c - p| < |\hat{p}_{exact} - p|$. By the monotonicity of $W$, the boundary report yields strictly higher principal utility than any valid report further from $p$. In particular, $\hat{p}_c$ minimizes the principal's loss $L(\hat{p}) = u(d^*(p), p) - u(d^*(\hat{p}), p)$ among all reports on the same side of $p$ as $\hat{p}_{exact}$.
+
+We now show that clipping does not affect the optimal curvature derived in the unconstrained analysis. The principal's loss under the quadratic Taylor approximation is $L(\hat{p}) \approx \frac{1}{2}|H(p)|(\hat{p} - p)^2$, which is strictly increasing in $|\hat{p} - p|$. Since clipping satisfies $|\hat{p}_c - p| \leq |\hat{p}_{exact} - p|$ for every realization of $\theta$, with strict inequality whenever $\hat{p}_{exact} \notin [0,1]$, the clipped loss is bounded above by the unconstrained loss:
 \begin{equation}
-	|\hat{p}_c - p| < |\hat{p}_{exact} - p|
+	L(\hat{p}_c) \leq L(\hat{p}_{exact}) \approx \frac{1}{2}|H(p)| \cdot \frac{\theta^2}{[G''(p)]^2}.
+\end{equation}
+Taking expectations, the unconstrained expected loss $\frac{\sigma^2 |H(p)|}{2[G''(p)]^2}$ is an upper bound on the true expected loss under clipping. Since this bound has the same functional dependence on $G''(p)$ as the exact clipped loss---both are decreasing in $G''(p)$ for fixed $p$---the curvature $G''(p)^*$ that minimizes the unconstrained objective also minimizes the upper bound on the clipped objective. The optimal curvature~\eqref{eq:optimal-curvature} therefore remains valid in the clipped model.
+
+Note that while the unconstrained objective overestimates the level of expected loss, the overestimation is larger for lower-curvature rules (which produce more clipping). This means the true gain from the optimal rule over a suboptimal alternative is, if anything, understated by the unconstrained analysis.
+
+\section{The subcontracting problem}\label{sec:subcontracting}
+
+The optimal curvature formula~\eqref{eq:optimal-curvature} applies to any utility function $u(d, x)$: one computes $H(p)$ and plugs in. We now consider a natural special case. Suppose the principal is herself facing a forecasting problem: she is scored according to a strictly proper scoring rule $S_0$ and delegates the estimation of $p$ to a sub-agent. This setting lets us analyze the expected gain for the principal from choosing particular scoring rules.
+
+\subsection{Setup}
+
+The principal faces a strictly proper scoring rule $S_0$ with entropy function $G_0$. Her gross payoff from reporting $d$ to the meta-principal when the outcome is $x$ is $S_0(d, x)$. The cost of paying the sub-agent is a separate expenditure, already captured by the $\alpha\,G(p)$ term in the principal's objective~\eqref{eq:principal-problem}. The principal's utility function in the sense of Section~\ref{sec:principal-opt} is therefore $u(d, x) = S_0(d, x)$. Since $S_0$ is strictly proper, the expected payoff $p\,S_0(d, 1) + (1-p)\,S_0(d, 0)$ is uniquely maximized at $d = p$, so $d^*(\hat{p}) = \hat{p}$ and $(d^*)'(\hat{p}) = 1$.
+
+\subsection{Principal's sensitivity}
+
+Since $(d^*)'(p) = 1$, the principal's sensitivity~\eqref{eq:H-def} simplifies to:
+\[
+H(p) = u''(d^*(p), p) \cdot 1^2 = \frac{\partial^2}{\partial d^2}\Big[p\,S_0(d, 1) + (1-p)\,S_0(d, 0)\Big]\bigg|_{d=p}.
+\]
+The expression in brackets is the principal's expected payoff from reporting $d$ when the true probability is $p$. This has the same form as the expected score function analyzed in Remark~\ref{rem:curvature-connection}, with $S_0$ playing the role of $S$ and $G_0$ playing the role of $G$. Applying that remark:
+\begin{equation}\label{eq:H-subcontracting}
+H(p) = -G_0''(p), \qquad |H(p)| = G_0''(p).
+\end{equation}
+The principal's sensitivity to reporting errors at base rate $p$ is determined by the curvature of the scoring rule she faces.
+
+\subsection{Optimal curvature for the sub-agent}
+
+Substituting $|H(p)| = G_0''(p)$ into~\eqref{eq:optimal-curvature}:
+\begin{equation}\label{eq:optimal-curvature-subcontracting}
+G''(p)^* = \left(\frac{\sigma^2\,G_0''(p)\,f(p)}{\alpha\,\phi(p)}\right)^{1/3}.
+\end{equation}
+The optimal curvature for the sub-agent scales as $[G_0''(p)]^{1/3}$, not $G_0''(p)$. This means the optimal rule \emph{compresses} the curvature profile of $S_0$: it retains the qualitative shape (more curvature where $G_0''$ is large) but flattens it toward uniformity. Where $S_0$ has high curvature, the optimal rule has proportionally less than $S_0$; where $S_0$ has low curvature, the optimal rule has proportionally more. In particular, the optimal rule for the sub-agent generically differs from $S_0$ itself. (Note that $S_0$ coincides with the decision-matched rule $S_u$ in this setting, since $S_u(\hat{p}, x) = u(d^*(\hat{p}), x) = S_0(\hat{p}, x)$. The generic suboptimality of $S_0$ is therefore a special case of the result in Section~\ref{sec:limited-liability} that $S_u$ is not generically optimal.)
+
+\subsection{Examples}
+
+\paragraph{Brier score.} If the principal faces the Brier score, $G_0''(p) = 2$ (constant), and $|H(p)| = 2$. The optimal curvature for the sub-agent is $G''(p)^* = (2\sigma^2 f(p)/[\alpha\,\phi(p)])^{1/3}$. With uniform prior, this reduces to $(4\sigma^2/[\alpha(p^2 - p + 1)])^{1/3}$, which is the counterexample from Section~\ref{sec:limited-liability}. The Brier score's constant curvature is suboptimal because $\phi(p)$ is not constant: curvature is cheaper near $p = 1/2$ than at the boundaries.
+
+\paragraph{Log score.} If the principal faces the log score, $G_0(p) = p\ln p + (1-p)\ln(1-p)$ and $G_0''(p) = 1/[p(1-p)]$. The sensitivity $|H(p)| = 1/[p(1-p)]$ is large near the boundaries, reflecting the log score's sharp penalties for confident wrong forecasts. The optimal sub-agent curvature is:
+\[
+G''(p)^* = \left(\frac{\sigma^2\,f(p)}{\alpha\,\phi(p)\,p(1-p)}\right)^{1/3}.
+\]
+With uniform prior, this diverges as $p \to 0$ or $p \to 1$, but more slowly than $G_0''(p) = 1/[p(1-p)]$: the optimal curvature scales as $[p(1-p)]^{-1/3}$ versus $[p(1-p)]^{-1}$. The principal who faces the log score should give the sub-agent a rule with less extreme curvature near the boundaries.
+
+\subsection{Efficiency of the pass-through rule}
+
+A natural benchmark is the \emph{pass-through rule}: the principal assigns the sub-agent a scaled version of her own scoring rule~$S_0$. Since scaling $S_0$ by $a > 0$ scales $G''$ by $a$, the pass-through rule has curvature $g(p) = a \cdot G_0''(p)$ for some $a > 0$ chosen optimally. We compare the principal's net utility under the pass-through to that under the pointwise-optimal curvature~\eqref{eq:optimal-curvature-subcontracting}.
+
+Write $B(p) = G_0''(p) = |H(p)|$ for the curvature of $S_0$. The principal's net utility under curvature $g$ is (from~\eqref{eq:separable}):
+\[
+V(g) = \int_0^1 \left[ -\frac{\sigma^2 B(p)\,f(p)}{2\,g(p)^2} - \alpha\,\phi(p)\,g(p) \right] dp.
+\]
+
+\paragraph{Optimal rule.} Substituting the pointwise-optimal $g^*(p) = (\sigma^2 B(p) f(p)/[\alpha\,\phi(p)])^{1/3}$ into the integrand and simplifying:
+\begin{equation}\label{eq:V-opt}
+V^* = -\tfrac{3}{2}\,(\sigma^2 \alpha^2)^{1/3} \int_0^1 (B(p)\,f(p))^{1/3}\,\phi(p)^{2/3}\,dp.
 \end{equation}
 
-The principal's utility when acting on a valid report $\hat{p} \in [0,1]$ is $W(\hat{p}) \equiv u(d^*(\hat{p}), p)$. By definition of the decision-matched scoring rule, this is exactly the expected score function $V_p(\hat{p})$ analyzed in Proposition 1. As shown in the proof of Proposition 1, $W(\hat{p})$ has a unique stationary point at $\hat{p} = p$, which is a strict maximum. Consequently, $W(\hat{p})$ is strictly increasing on $[0, p]$ and strictly decreasing on $[p, 1]$. Because clipping an out-of-bounds report strictly moves it closer to $p$ to the nearest valid boundary, it strictly increases $W(\hat{p}_c)$ relative to any mathematically valid report further from the truth, thereby minimizing the principal's exact loss $L(\hat{p}) = u(d^*(p), p) - u(d^*(\hat{p}), p)$ given the bounds.
+\paragraph{Pass-through rule.} With $g(p) = a\,B(p)$, the objective separates into two terms that depend on $a$ as $1/a^2$ and $a$ respectively:
+\[
+V(a) = -\frac{\sigma^2}{2a^2}\underbrace{\int_0^1 \frac{f(p)}{B(p)}\,dp}_{I_1} - \alpha\,a \underbrace{\int_0^1 \phi(p)\,B(p)\,dp}_{I_2}.
+\]
+Optimizing over $a > 0$ yields $a^* = (\sigma^2 I_1/(\alpha\,I_2))^{1/3}$ and
+\begin{equation}\label{eq:V-pass}
+V_{\mathrm{pass}} = -\tfrac{3}{2}\,(\sigma^2 \alpha^2)^{1/3}\, I_1^{1/3}\, I_2^{2/3}.
+\end{equation}
 
-This guarantees that the principal is always strictly better off under the clipped regime when the unconstrained report violates the boundaries, provided the clipped report remains in the neighborhood where $W$ is concave (which is ensured when $\sigma$ is small relative to $\min(p, 1-p)$).
+\paragraph{The efficiency ratio.} Since both $V^*$ and $V_{\mathrm{pass}}$ are negative, and $V^*$ is closer to zero, the ratio
+\begin{equation}\label{eq:efficiency}
+\eta \equiv \frac{V^*}{V_{\mathrm{pass}}} = \frac{\displaystyle\int_0^1 (B(p)\,f(p))^{1/3}\,\phi(p)^{2/3}\,dp}{\displaystyle\left(\int_0^1 \frac{f(p)}{B(p)}\,dp\right)^{\!1/3}\left(\int_0^1 \phi(p)\,B(p)\,dp\right)^{\!2/3}}
+\end{equation}
+lies in $(0, 1]$, and the fractional improvement from using the optimal rule is $1 - \eta$. Three properties are immediate.
 
-While clipping guarantees an exact reduction in loss, computing the true expected loss under the clipped distribution is analytically intractable: it requires inverting the nonlinear first-order condition $V_p'(\hat{p}) + \theta = 0$ to obtain $\hat{p}_{exact}(\theta)$ for each noise draw, composing with the clipping and loss functions, and integrating against the Gaussian density---none of which admit closed forms for general $G''$. To optimize the scoring rule, we therefore retain the continuous Taylor approximations for both the agent's error ($\hat{p} - p \approx \frac{\theta}{G''(p)}$) and the principal's loss ($L \approx -\frac{1}{2}H(p)(\hat{p}-p)^2$) to form a surrogate objective function.
+\emph{Parameter-free.} The ratio $\eta$ depends only on the shape functions $B$, $f$, and $\phi$ --- not on $\sigma^2$ or $\alpha$. The percentage gain from optimization is the same regardless of the noise level or the cost of payments.
 
-Optimizing against this unconstrained analytical surrogate does not establish a strict mathematical bound for the exact clipped loss, nor does it guarantee global optimality in the clipped problem. Clipping differentially benefits lower-curvature rules, which produce higher report variance $\sigma^2/[G''(p)]^2$ and hence more probability mass outside $[0,1]$, creating a larger gap between the surrogate and the true loss. The surrogate therefore serves as a tractable heuristic for allocating curvature, which remains highly accurate in the small-noise regime where boundary reports are rare.
+\emph{H\"older bound.} Apply H\"older's inequality with exponents $(3, \tfrac{3}{2})$ to $u = f/B$ and $v = \phi\,B$:
+\[
+\int_0^1 (f/B)^{1/3}\,(\phi\,B)^{2/3}\,dp \;\leq\; \left(\int_0^1 \frac{f}{B}\,dp\right)^{\!1/3}\left(\int_0^1 \phi\,B\,dp\right)^{\!2/3} = I_1^{1/3}\,I_2^{2/3}.
+\]
+The left-hand side equals $\int (Bf)^{1/3}\,\phi^{2/3}\,dp$ (the numerator of $\eta$), confirming $\eta \leq 1$.
+
+\emph{Equality condition.} H\"older's inequality is tight if and only if $f/B \propto \phi\,B$, i.e.,
+\[
+\frac{B(p)^2\,\phi(p)}{f(p)} = \frac{|H(p)|^2\,\phi(p)}{f(p)} = \text{const}.
+\]
+This is precisely the condition for $S_u = S_0$ to be optimal (Section~\ref{sec:limited-liability}).
+
+\paragraph{Numerical examples.} Table~\ref{tab:efficiency} evaluates $\eta$ for different combinations of $S_0$ and the prior $f$. For the Brier score, $B(p) = 2$; for the spherical score, $B(p) = [p^2 + (1-p)^2]^{-3/2}$, which peaks at $p = 1/2$ and equals $1$ at the boundaries.
+
+\begin{table}[h]
+\centering
+\caption{Efficiency $\eta$ of the pass-through rule for different scoring rules and priors.}
+\label{tab:efficiency}
+\begin{tabular}{ll|cc}
+$S_0$ & Prior $f$ & $\eta$ & Gain $1-\eta$ \\
+\hline
+Brier & Uniform & $0.999$ & $0.1\%$ \\
+Brier & $\mathrm{Beta}(2,2)$ & $0.946$ & $5.4\%$ \\
+Brier & $\mathrm{Beta}(5,5)$ & $0.780$ & $22.0\%$ \\
+Brier & $\mathrm{Beta}(0.5, 0.5)$ & $0.970$ & $3.0\%$ \\
+\hline
+Spherical & Uniform & $0.966$ & $3.4\%$ \\
+Spherical & $\mathrm{Beta}(2,2)$ & $0.992$ & $0.8\%$ \\
+Spherical & $\mathrm{Beta}(5,5)$ & $0.896$ & $10.4\%$ \\
+Spherical & $\mathrm{Beta}(0.5, 0.5)$ & $0.868$ & $13.2\%$ \\
+\end{tabular}
+\end{table}
+
+Two patterns stand out. First, the Brier score with a uniform prior --- the most commonly studied case --- is nearly optimal ($0.1\%$ gain), but this is the exception. With a $\mathrm{Beta}(5,5)$ prior, the gain rises to $22\%$: the Brier score wastes curvature at the boundaries where the prior places negligible mass, while the optimal rule concentrates curvature near $p = 1/2$ where both $f(p)$ and $1/\phi(p)$ are large.
+
+Second, the spherical score is near-optimal for $\mathrm{Beta}(2,2)$ ($0.8\%$ gain) but not for $\mathrm{Beta}(0.5, 0.5)$ ($13.2\%$ gain). Its curvature peaks at $p = 1/2$ and is lowest at the boundaries, which matches a prior concentrated in the middle but conflicts with one concentrated at the extremes. This illustrates the general principle: the pass-through rule is efficient when its curvature profile $B(p)$ happens to satisfy $B(p)^2\,\phi(p)/f(p) \approx \text{const}$, which depends on the prior.
 
 \begin{comment}
 \section{Log-odds reparametrization}\label{sec:logodds}
@@ -696,27 +802,153 @@ Several approaches can address this issue:
 \end{comment}
 \newpage
 
+\section{Wager extension}\label{sec:wager}
+
+The limited liability constraint $S(\hat{p}, x) \geq 0$ models tournament-style platforms (e.g.\ Metaculus) where forecasters cannot lose money. In prediction markets, the agent puts up a stake $W > 0$ and can lose part or all of it. The payoff constraint becomes $S(\hat{p}, x) \geq -W$ for all $\hat{p} \in (0,1)$ and $x \in \{0,1\}$, and we impose a \emph{participation constraint}: the agent's expected payment when reporting truthfully must be non-negative, $G(p) \geq 0$ for all $p \in (0,1)$.
+
+\subsection{Reducing the wager constraint}
+
+Define $\bar{S}(\hat{p}, x) = S(\hat{p}, x) + W$. Then $\bar{S} \geq 0$, and $\bar{S}$ is a strictly proper scoring rule with entropy function $\bar{G}(p) = G(p) + W$. Since $\bar{G}'' = G''$, the limited liability analysis of Section~\ref{sec:reducing} applies to $\bar{S}$: the constraint $\bar{S} \geq 0$ reduces to
+\[
+\bar{G}(0) + \bar{G}'(0) \geq 0, \qquad \bar{G}(1) - \bar{G}'(1) \geq 0,
+\]
+i.e.,
+\begin{equation}\label{eq:wager-reduced}
+G(0) + G'(0) \geq -W, \qquad G(1) - G'(1) \geq -W.
+\end{equation}
+As in Section~\ref{sec:limited-liability}, adding an affine function $a + bp$ to $G$ does not change $G''$ or the loss term, but shifts expected payments. The principal minimizes payments by choosing $a$ and $b$ so that both constraints bind:
+\begin{equation}\label{eq:wager-boundary}
+G(0) + G'(0) = -W, \qquad G(1) - G'(1) = -W.
+\end{equation}
+
+\subsection{Green's function representation with wager}
+
+Following the derivation in Section~\ref{sec:greens} with the modified boundary conditions~\eqref{eq:wager-boundary}, we integrate $G''(p) = g(p)$ twice. The first boundary condition gives $G(0) = -W - G'(0)$. Substituting into $G(p) = G(0) + G'(0)\,p + \int_0^p (p-t)\,g(t)\,dt$ and applying the second boundary condition yields:
+\[
+G'(0) = -\int_0^1 t\,g(t)\,dt, \qquad G(0) = -W + \int_0^1 t\,g(t)\,dt.
+\]
+These are identical to the limited liability case except for the $-W$ shift in $G(0)$. Assembling:
+\begin{equation}\label{eq:G-wager}
+G(p) = \int_0^1 K(p,t)\,g(t)\,dt - W,
+\end{equation}
+where $K(p,t)$ is the same Green's function kernel~\eqref{eq:kernel} as before.
+
+\subsection{Participation constraint}
+
+The participation constraint $G(p) \geq 0$ becomes $\Phi(p) \equiv \int_0^1 K(p,t)\,g(t)\,dt \geq W$ for all $p \in (0,1)$. To determine where this constraint is tightest, we compute:
+\[
+\Phi'(p) = \int_0^p (1-t)\,g(t)\,dt - \int_p^1 t\,g(t)\,dt, \qquad \Phi''(p) = g(p) > 0.
+\]
+Since $\Phi$ is strictly convex in $p$, its minimum is achieved at a unique interior point $p^*$ satisfying $\Phi'(p^*) = 0$, i.e.,
+\begin{equation}\label{eq:Phi-min}
+\int_0^{p^*} (1-t)\,g(t)\,dt = \int_{p^*}^1 t\,g(t)\,dt.
+\end{equation}
+Therefore, it suffices to show that the participation constraint is satisfied at the minimum $p^*$:
+\begin{equation}\label{eq:participation}
+\int_0^1 K(p^*,t)\,g(t)\,dt \geq W.
+\end{equation}
+
+When $W = 0$, the constraint is automatically satisfied since $\Phi(p^*) > 0$ (because $K \geq 0$, $K \not\equiv 0$, $g > 0$). For $W > 0$, it imposes a lower bound on total curvature.
+
+\subsection{Principal's objective with wager}
+
+The principal's expected payment is $\mathbb{E}_f[G(p)] = \int_0^1 f(p)\,G(p)\,dp = \int_0^1 \phi(p)\,g(p)\,dp - W$, using \eqref{eq:G-wager} and the definition of $\phi$~\eqref{eq:phi-def}. The $-W$ term reflects the principal's gain from collecting the agent's stake. The full objective is:
+\begin{equation}\label{eq:wager-objective}
+\int_0^1 \left[\frac{\sigma^2\,H(p)\,f(p)}{2\,g(p)^2} - \alpha\,\phi(p)\,g(p)\right]dp + \alpha W,
+\end{equation}
+subject to the participation constraint~\eqref{eq:participation} and $g > 0$. The integrand is identical to the limited liability objective~\eqref{eq:separable}; the only change is the constant $\alpha W$ and the additional constraint.
+
+\subsection{Lagrangian optimization}\label{sec:lagrangian}
+
+The participation constraint requires $\Phi(p) \equiv \int_0^1 K(p,t)\,g(t)\,dt \geq W$ for all $p \in (0,1)$. Because $\Phi$ is strictly convex, it achieves its global minimum at a unique interior point $p^*$. Consequently, the infinite family of constraints reduces to a single worst-case binding condition at this minimum: $\Phi(p^*) \geq W$.
+
+We introduce a single scalar Lagrange multiplier $\lambda \geq 0$ for this constraint. The Lagrangian is:
+\begin{equation}\label{eq:lagrangian}
+	\mathcal{L} = \int_0^1 \left[\frac{\sigma^2\,H(p)\,f(p)}{2\,g(p)^2} - \alpha\,\phi(p)\,g(p)\right]dp + \alpha W + \lambda \left(\int_0^1 K(p^*,t)\,g(t)\,dt - W\right).
+\end{equation}
+
+To optimize this pointwise, we merge the constraint integral into the main objective. By renaming the dummy variable $t$ to $p$ in the constraint term and factoring out $g(p)$, the Lagrangian becomes separable in $g$:
+\[
+\mathcal{L} = \int_0^1 \left[\frac{\sigma^2\,H(p)\,f(p)}{2\,g(p)^2} - \Big(\alpha\,\phi(p) - \lambda\,K(p^*,p)\Big)g(p)\right]dp + W(\alpha - \lambda).
+\]
+
+We define the \emph{effective cost of curvature} as the term inside the parentheses:
+\begin{equation}\label{eq:phi-tilde}
+	\tilde{\phi}(p) \equiv \alpha\,\phi(p) - \lambda\,K(p^*,p).
+\end{equation}
+
+The wager effectively subsidizes the principal's cost of paying the agent, reducing the baseline cost of curvature $\alpha\phi(p)$ by the discounted constraint penalty $\lambda K(p^*,p)$. Provided $\tilde{\phi}(p) > 0$, maximizing the integrand pointwise with respect to $g > 0$ yields the optimal curvature:
+\begin{equation}\label{eq:optimal-curvature-wager}
+	\boxed{G''(p)^*_W = \left(\frac{\sigma^2\,|H(p)|\,f(p)}{\tilde{\phi}(p)}\right)^{1/3},}
+\end{equation}
+where the multiplier $\lambda \geq 0$ and the binding point $p^*$ are determined simultaneously by the minimization of $\Phi$ and the complementary slackness condition:
+\begin{equation}\label{eq:comp-slack}
+	\lambda\left(\int_0^1 K(p^*,t)\,g^*(t)\,dt - W\right) = 0, \qquad p^* = \arg\min_p \int_0^1 K(p,t)\,g^*(t)\,dt.
+\end{equation}
+
+\subsection{Interpretation}
+
+The wager reduces the effective cost of curvature from $\alpha\,\phi(p)$ to $\tilde{\phi}(p) = \alpha\,\phi(p) - \lambda\,K(p^*,p)$. Since $K \geq 0$ and $\lambda \geq 0$, we have $\tilde{\phi}(p) \leq \alpha\,\phi(p)$, so the optimal curvature is everywhere at least as large as under limited liability. This is intuitive: the agent's willingness to risk losing money allows the principal to offer a scoring rule with stronger incentives (higher curvature) without increasing net expected payments.
+
+The reduction is not uniform across $p$: the kernel $K(p^*,p)$ is minimized at $p = p^*$ (with value $p^*(1-p^*)$) and increases toward the boundaries ($K(p^*,0) = p^*$, $K(p^*,1) = 1-p^*$). The effective cost is therefore reduced \emph{most} near $p = 0$ and $p = 1$, and \emph{least} near $p^*$. This reflects the structure of the Green's function: curvature near the boundaries contributes most to the expected payment at the constraint-binding point $p^*$.
+
+When $W = 0$, the participation constraint is slack, $\lambda = 0$, and \eqref{eq:optimal-curvature-wager} reduces to the limited liability solution~\eqref{eq:optimal-curvature}.
+
+\subsection{Feasibility and maximum wager}
+
+For the solution~\eqref{eq:optimal-curvature-wager} to be valid, we require $\tilde{\phi}(p) > 0$ for all $p \in (0,1)$. This imposes:
+\[
+\alpha\,\phi(p) > \lambda\,K(p^*,p) \quad \text{for all } p \in (0,1).
+\]
+Since $\phi(p) > 0$, this holds for $\lambda$ sufficiently small. As $W$ increases, $\lambda$ must increase to satisfy the participation constraint, eventually violating $\tilde{\phi} > 0$ at some $p$. The critical point occurs when $\tilde{\phi}$ first reaches zero at the minimizer of $\alpha\,\phi(p) - \lambda\,K(p^*,p)$, beyond which the optimization problem has no interior solution.
+
+\subsection{Counterexample with wager}
+
+Take $u(d,x) = -(d-x)^2$ and $f \equiv 1$ as in the limited liability counterexample. Then $H(p) = -2$, $\phi(p) = (p^2 - p + 1)/2$. By symmetry of the problem ($f$ uniform, $|H|$ constant, $\phi$ symmetric about $p = 1/2$), the optimal $g^*$ is symmetric and the participation constraint binds at $p^* = 1/2$. The kernel at this point is:
+\[
+K(1/2,\,p) = \begin{cases} (1-p)/2 & p \leq 1/2, \\ p/2 & p > 1/2, \end{cases}
+\]
+which can be written as $K(1/2,p) = \max(p,\,1-p)/2$. The effective cost becomes:
+\[
+\tilde{\phi}(p) = \frac{\alpha(p^2 - p + 1) - \lambda\max(p,\,1-p)}{2}.
+\]
+The optimal curvature is:
+\begin{equation}\label{eq:wager-counterexample}
+g^*_W(p) = \left(\frac{4\sigma^2}{\alpha(p^2 - p + 1) - \lambda\max(p,\,1-p)}\right)^{1/3},
+\end{equation}
+where $\lambda \geq 0$ is determined by $\int_0^1 K(1/2,\,t)\,g^*_W(t)\,dt = W$ (if the constraint binds) or $\lambda = 0$ (if it does not).
+
+\textbf{Feasibility.} By symmetry it suffices to consider $p \in [0,1/2]$, where $\tilde{\phi}(p) = [\alpha p^2 + (\alpha - \lambda)(1-p)]/2$. This is minimized at $p = (\alpha - \lambda)/(2\alpha)$, with minimum value $(\alpha - \lambda)(3\alpha + \lambda)/(8\alpha)$. Therefore $\lambda < \alpha$ is required. As $\lambda \to \alpha$, the minimizer of $\tilde{\phi}$ approaches $p = 0$ (and by symmetry $p = 1$), and curvature diverges near the boundaries. The maximum feasible wager $W_{\max}$ is the value at which $\lambda = \alpha$.
+
+\textbf{Effect of the wager.} As $W$ increases from $0$, the multiplier $\lambda$ increases, reducing $\tilde{\phi}$ and raising curvature everywhere. The reduction in $\tilde{\phi}$ is largest near the boundaries (where $K(1/2,p)$ is largest) and smallest at $p = 1/2$ (where $K(1/2,p)$ is smallest). While the baseline curvature under limited liability is highest at $p = 1/2$ (where $\phi$ is smallest), the wager preferentially increases curvature near the boundaries, making the curvature profile more uniform. For large $W$, curvature diverges near the boundaries (as $\lambda \to \alpha$), in contrast to the limited liability solution where curvature peaks at $p = 1/2$.
+
+The intuition is as follows. Under limited liability, the principal pays for curvature through the expected scoring rule payment, and this cost is mediated by $\phi(p)$: curvature at $p = 1/2$ is cheapest because it contributes least to expected payments. The wager introduces a second channel. The agent's stake is at risk, and the amount at risk depends on the Green's function kernel $K(p^*,p)$, which is largest near the boundaries. Curvature near the boundaries therefore ``pays for itself'' through the agent's wager exposure, reducing the principal's net cost there. As $W$ increases, this boundary subsidy grows until it dominates the baseline cost profile, continuously rotating the optimal curvature from center-peaked through approximately uniform to boundary-peaked. At moderate wager levels, the two effects roughly balance, producing a nearly flat curvature profile. Figure~\ref{fig:wager} illustrates this progression.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{wager_figure.pdf}
+\caption{Effect of the wager on the counterexample ($u = -(d-x)^2$, $f \equiv 1$, $\alpha = \sigma^2 = 1$). Here $W_0 = \Phi(p^*)\big|_{\lambda=0}$ is the agent's minimum expected payoff under the limited liability solution; wagers $W \leq W_0$ are automatically satisfied and do not affect the optimum. (a)~The effective cost of curvature $\tilde{\phi}(p)$ decreases as $\lambda$ increases, with the largest reduction near the boundaries where $K(1/2,p)$ is largest. (b)~The optimal curvature profile (normalized by its mean) shifts from center-peaked under limited liability to boundary-peaked under a large wager.}
+\label{fig:wager}
+\end{figure}
+
 \section*{Notes for continuation}
-\textbf{Status.} Sections 1--6 set up the model: we define the principal-agent problem, the decision-matched scoring rule $S_u$, prove properness, introduce the random utility model with Gaussian noise, and formulate the principal's optimization problem. Section~\ref{sec:limited-liability} solves the optimal scoring rule under limited liability ($S \geq 0$), yielding a closed-form solution for optimal curvature \eqref{eq:optimal-curvature}. Section~7 reparametrizes the agent's problem in log-odds, resolving the unbounded-support issue of the probability-space model, and derives the corresponding optimal curvature \eqref{eq:optimal-curvature-logodds}.
+\textbf{Status.} Sections 1--6 set up the model: we define the principal-agent problem, the decision-matched scoring rule $S_u$, prove properness, introduce the random utility model with Gaussian noise, and formulate the principal's optimization problem. Section~\ref{sec:limited-liability} solves the optimal scoring rule under limited liability ($S \geq 0$), yielding a closed-form solution for optimal curvature \eqref{eq:optimal-curvature}. Section~\ref{sec:wager} extends the solution to allow a wager, where the agent risks losing a stake $W$ in exchange for stronger incentives.
 
 \textbf{Key results so far.}
 \begin{itemize}
 \item The limited liability constraint $S(\hat{p}, x) \geq 0$ reduces to $G(0) + G'(0) \geq 0$ and $G(1) - G'(1) \geq 0$, both of which bind at optimum.
 \item With boundary conditions $G(0) + G'(0) = 0$ and $G(1) - G'(1) = 0$, $G$ is expressed via a Green's function \eqref{eq:greens} as a linear functional of $g = G''$.
 \item The principal's problem becomes separable in $g$, which enables pointwise optimization.
-\item \textbf{Probability-space model:} the optimal curvature is $G''(p)^* = \left(\sigma^2 |H(p)| f(p) / (\alpha \phi(p))\right)^{1/3}$. $S_u$ is optimal if and only if $|H(p)|^2 \phi(p) / f(p)$ is constant in $p$.
-\item \textbf{Log-odds model:} the optimal curvature is $G''(p)^*_{\mathrm{lo}} = \left(\sigma^2 |H(p)| f(p) / (\alpha \phi(p) p^2(1-p)^2)\right)^{1/3}$. This diverges as $p \to 0$ or $p \to 1$, but the scoring rule retains bounded payments because $g(t) \sim t^{-2/3}$ is integrable against the Green's function kernel. The two models impose generically incompatible conditions for $S_u$ optimality: the probability-space model requires $|H(p)|^2 \phi(p) / f(p) = \text{const}$, while the log-odds model requires $|H(p)|^2 \phi(p) p^2(1-p)^2 / f(p) = \text{const}$.
-\item In the counterexample ($u(d,x) = -(d-x)^2$, $f \equiv 1$), both models show that the Brier score's constant curvature is suboptimal: it underallocates curvature near $p = 1/2$ (where curvature is cheapest under limited liability) and, in the log-odds model, also severely underallocates near the boundaries.
-\item \textbf{Numerical verification} (Section~\ref{sec:numerical}): the probability-space Taylor approximation is accurate to within $5\%$ for $\sigma \leq 0.1$. The log-odds model has a fundamental compatibility issue: bounded scoring rules produce boundary reports ($\hat{p} \in \{0,1\}$) for a positive fraction of noise draws, because the incentive gradient $\tilde{V}_p'(\hat{\ell})$ is bounded while the noise $\theta$ is not. This invalidates the Taylor approximation for bounded rules at non-negligible noise levels. Section~\ref{sec:logodds-implications} outlines four approaches to address this.
+\item The optimal curvature is $G''(p)^* = \left(\sigma^2 |H(p)| f(p) / (\alpha \phi(p))\right)^{1/3}$. $S_u$ is optimal if and only if $|H(p)|^2 \phi(p) / f(p)$ is constant in $p$.
+\item In the counterexample ($u(d,x) = -(d-x)^2$, $f \equiv 1$), the Brier score's constant curvature is suboptimal: it underallocates curvature near $p = 1/2$, where curvature is cheapest under limited liability.
+\item \textbf{Numerical verification} (Section~\ref{sec:numerical}): the Taylor approximation is accurate to within $5\%$ for $\sigma \leq 0.1$.
+\item \textbf{Wager extension} (Section~\ref{sec:wager}): the optimal curvature under a wager $S \geq -W$ takes the same form, with $\alpha\,\phi(p)$ replaced by the effective cost $\tilde{\phi}(p) = \alpha\,\phi(p) - \lambda\,K(p^*,p)$. The wager preferentially reduces the cost of curvature near the boundaries, shifting the optimal curvature profile from center-peaked to boundary-peaked as $W$ increases (Figure~\ref{fig:wager}).
 \end{itemize}
 
 \textbf{Open questions and next steps.}
 \begin{enumerate}
-\item \textbf{Log-odds model resolution.} The numerical verification (Section~\ref{sec:logodds-implications}) identifies four approaches to the boundary-report issue: (i) restrict to the small-noise regime, (ii) optimize within unbounded-payment families, (iii) model boundary reports explicitly, or (iv) use the probability-space model as the primary framework. A decision on which approach to pursue is needed.
-\item \textbf{Tail probability of errors.} For any error threshold $\delta > 0$, calculate the probability $\Pr(|\hat{p} - p| > \delta)$ under a given scoring rule $S$. Investigate how this tail probability varies across scoring rules and base rates $p$, under both models.
+\item \textbf{Tail probability of errors.} For any error threshold $\delta > 0$, calculate the probability $\Pr(|\hat{p} - p| > \delta)$ under a given scoring rule $S$. Investigate how this tail probability varies across scoring rules and base rates $p$.
 \item \textbf{Expected gain for the principal.} Compute how the principal's expected gain changes under different scoring rules, assuming a uniform prior $p \sim U[0,1]$. A baseline scenario to model is whether a principal, when facing a forecasting problem themselves, optimally assigns the exact same scoring rule they face to the subcontracted agent.
-\item \textbf{Wager extension.} The limited liability constraint models tournament-style platforms like Metaculus, where forecasters cannot lose. For prediction markets, the agent puts up a stake $W$ and can lose money: the constraint becomes $S(\hat{p}, x) \geq -W$ with a participation constraint $G(p) \geq 0$. Derive the optimal curvature under these constraints.
-\item \textbf{Empirical model selection.} The probability-space and log-odds models make different predictions about the structure of forecaster errors. Empirical evidence on forecaster calibration would help distinguish between the models.
 \end{enumerate}
 
 \end{document}
