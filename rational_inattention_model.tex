@@ -349,7 +349,6 @@ which simplifies to:
 \begin{equation}\label{eq:ri-Su-condition}
 |H(p)|\,\phi(p) / f(p) = c/(2\alpha) \quad \text{(constant in } p\text{)}.
 \end{equation}
-Compare with the additive noise condition $|H(p)|^2\,\phi(p)/f(p) = \text{const}$. The RI condition is \emph{weaker}: it requires $|H|\phi/f$ to be constant, while the additive noise condition requires $|H|^2\phi/f$ to be constant.
 
 \paragraph{Counterexample.} For $u(d,x) = -(d-x)^2$ and $f \equiv 1$: $|H(p)| = 2$ and $\phi(p) = (p^2-p+1)/2$. The condition~\eqref{eq:ri-Su-condition} requires $2 \cdot (p^2-p+1)/2 = p^2-p+1$ to be constant, which fails (it ranges from $3/4$ to $1$). The Brier score is still suboptimal, but for the same reason as before: $\phi(p)$ is not constant.
 
@@ -361,12 +360,36 @@ G''(p)^*_{\mathrm{RI}} = \sqrt{\frac{c \cdot 2}{\alpha(p^2-p+1)}} = \sqrt{\frac{
 
 \section{Existence of the optimal scoring rule}
 
-The argument is identical to the additive noise case. Define $G^*(p) = \int_0^1 K(p,t)\,g^*(t)\,dt$ where $g^* = G''^*_{\mathrm{RI}}$. Since $g^*(p) > 0$ and is bounded (under the same conditions as before: $|H(p)|f(p)/\phi(p)$ bounded), the integral is well-defined. The Green's function construction automatically satisfies the boundary conditions $G^*(0) + (G^*)'(0) = 0$ and $G^*(1) - (G^*)'(1) = 0$, ensuring limited liability. The resulting scoring rule via the standard representation is strictly proper and satisfies $S^*(\hat{p},x) \geq 0$.
+The pointwise optimization yields an optimal curvature function $g^*(p) = G''^*_{\mathrm{RI}}(p)$, but we must verify that a strictly proper scoring rule with this curvature actually exists. Specifically, we need to show that integrating $g^*$ twice and imposing the boundary conditions produces a valid entropy function $G^*$.
+
+By the Green's function representation~\eqref{eq:greens}, define
+\[
+G^*(p) = \int_0^1 K(p,t)\,g^*(t)\,dt,
+\]
+where $K$ is the kernel~\eqref{eq:kernel}. This integral is well-defined and finite for all $p \in [0,1]$ provided $g^*$ is integrable on $(0,1)$, which holds whenever $|H(p)|\,f(p)/\phi(p)$ is bounded (guaranteed by $\phi(p) > 0$ on $(0,1)$ and $|H(p)|\,f(p)$ bounded).
+
+We verify that $G^*$ satisfies all requirements for a valid entropy function of a strictly proper scoring rule with limited liability.
+
+\begin{enumerate}
+\item \textbf{Strict convexity.} By construction, $(G^*)''(p) = g^*(p) > 0$ for all $p \in (0,1)$, so $G^*$ is strictly convex.
+
+\item \textbf{Boundary conditions.} Any $G$ constructed via~\eqref{eq:greens} automatically satisfies the boundary conditions $G(0) + G'(0) = 0$ and $G(1) - G'(1) = 0$. To see this: $G^*(0) = \int_0^1 K(0,t)\,g^*(t)\,dt = 0$ since $K(0,t) = 0$ for all $t$. Differentiating~\eqref{eq:greens} gives $(G^*)'(0) = -\int_0^1 t\,g^*(t)\,dt$, and from the double integration $G^*(0) = \int_0^1 t\,g^*(t)\,dt$, so $G^*(0) + (G^*)'(0) = 0$. The second boundary condition follows analogously.
+
+\item \textbf{Limited liability.} Since the boundary conditions bind with equality, the reduced limited liability constraints hold. The standard representation gives $\min_{\hat{p}} S(\hat{p},1) = G^*(0) + (G^*)'(0) = 0 \geq 0$ and $\min_{\hat{p}} S(\hat{p},0) = G^*(1) - (G^*)'(1) = 0 \geq 0$. Therefore $S(\hat{p},x) \geq 0$ for all $\hat{p} \in (0,1)$ and $x \in \{0,1\}$.
+
+\item \textbf{Non-negative expected payments.} Since $K(p,t) \geq 0$ and $g^*(t) > 0$, we have $G^*(p) \geq 0$ for all $p \in [0,1]$, with $G^*(p) > 0$ for $p \in (0,1)$.
+\end{enumerate}
+
+The scoring rule corresponding to $G^*$ is then given by the standard representation:
+\[
+S^*(\hat{p},1) = G^*(\hat{p}) + (1-\hat{p})\,(G^*)'(\hat{p}), \qquad S^*(\hat{p},0) = G^*(\hat{p}) - \hat{p}\,(G^*)'(\hat{p}).
+\]
+This is a strictly proper scoring rule satisfying limited liability, confirming that the optimal curvature~\eqref{eq:ri-optimal-curvature} is attained by an admissible scoring rule.
 
 
 \section{Tail probability of large errors}\label{sec:ri-tail}
 
-A major advantage of the rational inattention model is that the Gibbs distribution provides exponential bounds on the probability of large reporting errors, with the exponential rate determined exactly by the scoring rule's regret structure. This should be contrasted with the additive noise model, where exponential tail decay relies on both the Gaussian assumption and Mill's ratio approximation.
+A major advantage of the rational inattention model is that the Gibbs distribution provides exponential bounds on the probability of large reporting errors, with the exponential rate determined exactly by the scoring rule's regret structure.
 
 \subsection{The regret function}
 
@@ -378,7 +401,11 @@ with equality only at $\hat{p} = p$. The regret $R_p(\hat{p})$ measures the expe
 
 \subsection{Exponential tail bound}
 
-Under the Gibbs distribution~\eqref{eq:gibbs-scoring}, the conditional probability of a reporting error exceeding $\Delta > 0$, given the true state $p$, is:
+The tail probability of a reporting error exceeding $\Delta > 0$ is obtained by integrating the Gibbs distribution~\eqref{eq:gibbs-scoring} over the error region:
+\[
+\Pr(|\hat{p} - p| > \Delta \mid p) = \int_{|\hat{p}-p|>\Delta} \pi^*(\hat{p} \mid p)\,d\hat{p} = \int_{|\hat{p}-p|>\Delta} \frac{q(\hat{p})\,\exp(V_p(\hat{p})/c)}{Z(p)}\,d\hat{p}.
+\]
+Since the normalizing constant is $Z(p) = \int_0^1 q(\hat{p})\,\exp(V_p(\hat{p})/c)\,d\hat{p}$, this becomes:
 \begin{equation}\label{eq:tail-exact-integral}
 \Pr(|\hat{p} - p| > \Delta \mid p) = \frac{\int_{|\hat{p}-p|>\Delta} q(\hat{p})\,\exp(V_p(\hat{p})/c)\,d\hat{p}}{\int_0^1 q(\hat{p})\,\exp(V_p(\hat{p})/c)\,d\hat{p}}.
 \end{equation}
@@ -414,13 +441,13 @@ Taking the ratio:
 \[
 \Pr(|\hat{p}-p|>\Delta \mid p) \leq \frac{\bar{q}}{2\epsilon\,\underline{q}(\epsilon)}\,\exp\!\left(-\frac{R^*(\Delta,p) - R^*(\epsilon,p)}{c}\right).
 \]
-Since $R^*(\epsilon, p) \to 0$ as $\epsilon \to 0$ and $R^*(\Delta,p) > 0$, for any fixed $\Delta$ the exponential factor dominates. In particular, the tail probability decays as $\exp(-R^*(\Delta,p)/c)$ up to a polynomial prefactor that depends on $q$ and $\epsilon$ but not on $c$.
+The constant $\frac{\bar{q}}{2\epsilon\,\underline{q}(\epsilon)}$ depends on $q$ and $\epsilon$ but not on $c$. Since $R^*(\epsilon, p) \to 0$ as $\epsilon \to 0$ while $R^*(\Delta,p) > 0$, we can choose $\epsilon$ small enough that $R^*(\Delta,p) - R^*(\epsilon,p) > 0$. The bound then has the form $C \cdot \exp(-(\text{positive constant})/c)$ where $C$ does not depend on $c$, establishing the exponential decay~\eqref{eq:tail-bound}.
 \end{proof}
 
 The bound~\eqref{eq:tail-bound} has several notable features:
 
 \begin{itemize}
-\item \textbf{Exponential rate from the Gibbs structure.} The rate $R^*(\Delta,p)/c$ is a direct consequence of the Gibbs form~\eqref{eq:gibbs}---not of a Gaussian approximation. The exponential decay holds for the exact optimal reporting distribution at any $c$, with only the prefactor depending on the endogenous marginal $q$.
+\item \textbf{Exponential rate from the Gibbs structure.} The rate $R^*(\Delta,p)/c$ is a direct consequence of the Gibbs form~\eqref{eq:gibbs}---not of a Gaussian approximation. The exponential decay holds for the exact optimal reporting distribution at any $c$; only the multiplicative constant $C$ depends on the endogenous marginal $q$.
 
 \item \textbf{Structural.} The exponential rate depends on the scoring rule only through the regret function $R_p$, which directly measures how strongly the scoring rule penalizes errors of a given size. Scoring rules with larger regret at distance $\Delta$ produce exponentially smaller tail probabilities.
 
@@ -429,15 +456,16 @@ The bound~\eqref{eq:tail-bound} has several notable features:
 
 \subsection{Quadratic approximation of the regret}
 
-For small $\Delta$, the regret is well approximated by the second-order Taylor expansion of $V_p$ around $p$:
+For small $\Delta$, consider a report $\hat{p}$ with $|\hat{p} - p| = \Delta$. The regret is well approximated by the second-order Taylor expansion of $V_p$ around $p$:
 \begin{equation}\label{eq:regret-quadratic}
-R_p(p \pm \Delta) = V_p(p) - V_p(p \pm \Delta) \approx \frac{1}{2}\,G''(p)\,\Delta^2.
+R_p(\hat{p}) = V_p(p) - V_p(\hat{p}) \approx \frac{1}{2}\,G''(p)\,(\hat{p}-p)^2 = \frac{1}{2}\,G''(p)\,\Delta^2,
 \end{equation}
+where the first-order term vanishes because $V_p'(p) = 0$ by properness.
 Substituting into the tail bound~\eqref{eq:tail-bound}:
 \begin{equation}\label{eq:tail-gaussian-recovery}
 \Pr(|\hat{p} - p| > \Delta \mid p) \;\lesssim\; \exp\!\left(-\frac{G''(p)\,\Delta^2}{2c}\right).
 \end{equation}
-This recovers the Gaussian tail: recall from~\eqref{eq:ri-gaussian} that $\hat{p} - p \sim N(0, c/G''(p))$ approximately, which gives $\Pr(|\hat{p}-p|>\Delta) = 2\,\bar{\Phi}(\Delta\sqrt{G''(p)/c})$, and $\bar{\Phi}(z) \sim \exp(-z^2/2)$ for large $z$. The Gibbs framework thus shows that the Gaussian tail formula is a consequence of the deeper exponential structure of the Gibbs distribution---the Gaussian approximation captures the correct exponent but is not needed to establish exponential decay.
+Note that the exponent $G''(p)\,\Delta^2/(2c)$ is exactly $\Delta^2/(2\sigma^2_p)$ where $\sigma^2_p = c/G''(p)$ is the Gaussian approximation variance from~\eqref{eq:ri-gaussian}. So the quadratic regret approximation recovers the same tail decay as the Gaussian approximation~\eqref{eq:ri-gaussian}. The point of the Gibbs framework is that exponential tail decay holds more generally: it follows from the structure of~\eqref{eq:gibbs-scoring} and properness alone, without relying on the Gaussian approximation.
 
 \subsection{Large errors and the exact regret}
 
@@ -460,9 +488,13 @@ When $R^*_1 > R^*_2$, scoring rule $S_1$ provides exponentially better tail prot
 
 \section{Efficiency of the pass-through rule}
 
-\subsection{Setup}
+\subsection{The subcontracting setting}
 
-In the subcontracting setting ($|H(p)| = G_0''(p) \equiv B(p)$), we compare the optimal curvature~\eqref{eq:ri-optimal-curvature} against the pass-through rule $g(p) = a\,B(p)$ for optimally chosen $a > 0$.
+Suppose the principal is herself a forecaster, scored by a strictly proper scoring rule $S_0$ with entropy function $G_0$. She delegates the estimation of $p$ to a sub-agent, whom she pays according to a scoring rule $S$ of her choice. Her utility function is $u(d,x) = S_0(d,x)$, where $d$ is the report she submits to the meta-principal. Since $S_0$ is strictly proper, the principal's optimal decision given the agent's report is simply $d^*(\hat{p}) = \hat{p}$, so $(d^*)'(\hat{p}) = 1$.
+
+The principal's sensitivity~\eqref{eq:H-def} then simplifies to $H(p) = u''(d^*(p),p) = -G_0''(p)$, so $|H(p)| = G_0''(p)$. Write $B(p) \equiv G_0''(p)$ for the curvature of the principal's own scoring rule.
+
+A natural benchmark is the \emph{pass-through rule}: the principal assigns the sub-agent a scaled version of her own rule $S_0$. Scaling $S_0$ by $a > 0$ scales the curvature by $a$, so the pass-through rule has $g(p) = a\,B(p)$ for some $a > 0$ chosen optimally. We compare the principal's net utility under this rule against the pointwise-optimal curvature~\eqref{eq:ri-optimal-curvature}.
 
 \subsection{Optimal rule value}
 
@@ -491,11 +523,11 @@ a^* = \sqrt{\frac{c}{2\alpha\,I_2}}, \qquad V_{\mathrm{pass}} = -\sqrt{2c\alpha\
 \begin{equation}\label{eq:ri-efficiency}
 \eta_{\mathrm{RI}} = \frac{V^*_{\mathrm{RI}}}{V_{\mathrm{pass}}} = \frac{\displaystyle\int_0^1 \sqrt{B(p)\,f(p)\,\phi(p)}\;dp}{\displaystyle\sqrt{\int_0^1 \phi(p)\,B(p)\,dp}},
 \end{equation}
-where we used $\int f = 1$. By the Cauchy--Schwarz inequality applied to $\int \sqrt{u \cdot v}\,dp \leq \sqrt{\int u\,dp \cdot \int v\,dp}$ with $u = B\,f$ and... actually, let us verify $\eta \leq 1$ directly. We need:
+where we used $\int f = 1$. To verify that $\eta \leq 1$ (i.e., the pass-through rule is weakly worse than the optimum), we need to show:
 \[
-\left(\int_0^1 \sqrt{B\,f\,\phi}\;dp\right)^2 \leq \int_0^1 \phi\,B\,dp.
+\left(\int_0^1 \sqrt{B\,f\,\phi}\;dp\right)^2 \leq \int_0^1 B\,\phi\,dp.
 \]
-By Cauchy--Schwarz, $\int \sqrt{Bf\phi}\,dp = \int \sqrt{f} \cdot \sqrt{B\phi}\,dp \leq \sqrt{\int f\,dp} \cdot \sqrt{\int B\phi\,dp} = \sqrt{\int B\phi\,dp}$. Squaring gives the desired inequality. Equality holds iff $f \propto B\phi$, i.e., $B(p)\,\phi(p)/f(p) = \text{const}$, which is exactly the condition~\eqref{eq:ri-Su-condition} for $S_u$ to be optimal.
+This follows from the Cauchy--Schwarz inequality: writing $\int \sqrt{B\,f\,\phi}\,dp = \int \sqrt{f} \cdot \sqrt{B\,\phi}\,dp$ and applying $\int uv \leq \sqrt{\int u^2} \cdot \sqrt{\int v^2}$ with $u = \sqrt{f}$ and $v = \sqrt{B\,\phi}$ gives $\int \sqrt{B\,f\,\phi}\,dp \leq \sqrt{\int f\,dp} \cdot \sqrt{\int B\,\phi\,dp} = \sqrt{\int B\,\phi\,dp}$. Squaring yields the desired inequality. Equality holds if and only if $\sqrt{f} \propto \sqrt{B\,\phi}$, i.e., $B(p)\,\phi(p)/f(p) = \text{const}$, which is exactly the condition~\eqref{eq:ri-Su-condition} for $S_u$ to be optimal.
 
 As in the additive noise model, $\eta$ is \textbf{parameter-free}: it depends only on the shape functions $B$, $f$, and $\phi$, not on $c$ or $\alpha$.
 
