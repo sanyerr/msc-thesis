@@ -1,0 +1,537 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{hyperref}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+
+\title{Rational Inattention Model for Scoring Rules}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{The rational inattention framework}
+
+\subsection{Core idea}
+
+Rational inattention (Sims, 2003) models agents who have limited information-processing capacity. The central premise is that extracting, processing, or acting on information is cognitively costly. Rather than assuming agents make random errors, rational inattention treats the \emph{precision} of an agent's behavior as a choice variable: the agent optimally allocates scarce cognitive resources, paying more attention to decisions where the stakes are high and less where they are low.
+
+The framework was originally developed for information acquisition: an agent facing uncertainty about the state of the world chooses how much information to gather, subject to an information-processing cost measured by mutual information (or equivalently, the expected KL divergence between posterior and prior beliefs). Mat\v{e}jka \& McKay (2015) applied this to discrete choice problems---settings where an agent chooses among finitely many alternatives (e.g., which product to buy, which route to take). They showed that a rationally inattentive agent's choice probabilities take the \emph{multinomial logit} form: the probability of choosing alternative $j$ is proportional to $\exp(u_j / c)$, where $u_j$ is the payoff and $c > 0$ is the information cost parameter---higher $c$ means information is more expensive and choices are less sensitive to payoffs. The multinomial logit is one of the most widely used models in empirical economics (demand estimation, transportation, industrial organization), but had previously been motivated only by assuming that payoff shocks follow a particular extreme-value distribution---an assumption with no behavioral justification. Mat\v{e}jka \& McKay showed that the same model arises from optimal information processing under cognitive constraints, replacing the arbitrary distributional assumption with a decision-theoretic foundation.
+
+\subsection{Application to forecasting: information acquisition}
+
+We apply the rational inattention framework in its original sense: the agent faces \emph{uncertainty about the state} and chooses how much information to acquire before acting. This is the natural interpretation for forecasting---a forecaster does not know the true probability $p$ and must investigate, deliberate, and gather evidence to form an estimate. The scoring rule determines how valuable this information is.
+
+Formally, the true probability $p$ is drawn from a prior $f(p)$ shared by the principal and the agent. The agent chooses an \emph{information strategy}: a joint distribution over states $p$ and reports $\hat{p}$, subject to the constraint that the marginal over $p$ equals the prior $f$. Equivalently, the agent chooses a family of conditional reporting distributions $\pi(\hat{p} \mid p)$. The agent's problem is:
+\begin{equation}\label{eq:ri-problem}
+\max_{\pi(\hat{p} \mid p)} \left\{ \int_0^1 f(p) \int_0^1 \pi(\hat{p} \mid p)\, V_p(\hat{p}) \, d\hat{p}\, dp \;-\; c \cdot I(p;\, \hat{p}) \right\},
+\end{equation}
+where:
+\begin{itemize}
+\item $V_p(\hat{p}) = p\,S(\hat{p},1) + (1-p)\,S(\hat{p},0)$ is the expected score from reporting $\hat{p}$ when the true probability is $p$,
+\item $c > 0$ is the \emph{information cost parameter}, measuring the cognitive cost per unit of information acquired,
+\item $I(p;\,\hat{p})$ is the mutual information between the state and the report, defined as the expected KL divergence of the conditional reporting distribution from the marginal:
+\[
+I(p;\,\hat{p}) = \int_0^1 f(p)\, D_{\mathrm{KL}}\!\big(\pi(\hat{p} \mid p) \,\big\|\, q(\hat{p})\big)\, dp,
+\]
+where $q(\hat{p}) = \int_0^1 f(p)\,\pi(\hat{p} \mid p)\,dp$ is the \emph{marginal distribution of reports} (the unconditional probability of reporting $\hat{p}$, averaged over states), and the KL divergence between two distributions $\pi$ and $q$ is:
+\[
+D_{\mathrm{KL}}(\pi(\hat{p} \mid p) \| q) = \int_0^1 \pi(\hat{p} \mid p) \ln \frac{\pi(\hat{p} \mid p)}{q(\hat{p})} \, d\hat{p}.
+\]
+\end{itemize}
+
+The first term is the expected payoff from the chosen information strategy. The second term is the cost of information: acquiring more precise signals about $p$ requires more cognitive effort, and the mutual information $I(p;\,\hat{p})$ measures how much the agent's report reveals about the true state. When $c = 0$, the agent acquires perfect information and reports $\hat{p} = p$. As $c \to \infty$, information is prohibitively expensive and the agent's report becomes independent of $p$---they fall back on some fixed default distribution $q_0$.
+
+\subsection{The endogenous reference distribution}\label{sec:mu0}
+
+A key feature of the information acquisition formulation~\eqref{eq:ri-problem} is that the reference distribution is \emph{endogenous}. The mutual information $I(p;\,\hat{p})$ can be decomposed as the expected KL divergence of the conditional reporting distribution $\pi(\hat{p} \mid p)$ from the marginal $q(\hat{p})$:
+\[
+I(p;\,\hat{p}) = \int_0^1 f(p)\, D_{\mathrm{KL}}\!\big(\pi(\hat{p} \mid p) \,\big\|\, q\big)\, dp.
+\]
+The marginal $q(\hat{p})$ plays the role of the reference distribution, but it is not chosen by the modeler---it is determined endogenously as part of the solution, by integrating the optimal conditional $\pi^*(\hat{p} \mid p)$ over states.
+
+Intuitively, $q(\hat{p})$ represents what the agent would report \emph{without any state-specific information}---their unconditional reporting behavior averaged over all forecasting problems they face. An agent who frequently encounters base rates near $1/2$ (because $f$ is concentrated there) will have $q$ concentrated near $1/2$; deviating from this default to report an extreme probability requires acquiring more information, and hence incurs a higher cost.
+
+Importantly, the endogenous nature of $q$ has \textbf{no effect on the main results when $c$ is small}. In the Gaussian approximation (Section~\ref{sec:gaussian-approx}), the conditional distribution $\pi^*(\hat{p} \mid p)$ is sharply peaked around $\hat{p} = p$ for small $c$. Near this peak, any smooth positive reference distribution $q$ produces the same variance formula: expanding $q(\hat{p}) = q(p) + q'(p)(\hat{p}-p) + \cdots$, the leading term $q(p)$ is absorbed into the normalizing constant, and the first correction shifts the mean by $O(c)$ without affecting the first-order term in the small-$c$ expansion of the variance. The specific form of $q$ matters only for corrections of order $c^2$ and higher, and for exact tail probabilities.
+
+\subsection{Why KL divergence?}
+
+The KL divergence (equivalently, mutual information) is not an arbitrary choice of cost function. It is the unique cost functional (up to scaling) that satisfies three natural axioms for information-processing costs:
+\begin{enumerate}
+\item \textbf{Additivity over independent decisions.} If the agent faces two independent problems, the total cost of choosing strategies for both equals the sum of the individual costs.
+\item \textbf{Monotonicity.} A more precise strategy (one that is further from $q$ in terms of achievable payoffs) costs more.
+\item \textbf{Invariance to sufficient statistics.} The cost depends only on the statistical relationship between the strategy and the default, not on how the action space is parameterized.
+\end{enumerate}
+These properties are established in the information theory literature and underpin the use of mutual information in rational inattention models (see Sims, 2003, and the subsequent literature).
+
+\subsection{Solution: the Gibbs distribution}
+
+The optimization problem~\eqref{eq:ri-problem} has a well-known closed-form solution in the discrete case (Mat\v{e}jka \& McKay, 2015, Theorem~1). We derive the continuous analogue here for completeness.
+
+\begin{proposition}[Optimal reporting distribution]\label{prop:gibbs}
+The optimal conditional reporting distribution for~\eqref{eq:ri-problem} is:
+\begin{equation}\label{eq:gibbs}
+\pi^*(\hat{p} \mid p) = \frac{1}{Z(p)} \, q(\hat{p}) \, \exp\!\left(\frac{V_p(\hat{p})}{c}\right),
+\end{equation}
+where $Z(p) = \int_0^1 q(\hat{p}) \exp(V_p(\hat{p})/c) \, d\hat{p}$ is the normalizing constant, and $q(\hat{p}) = \int_0^1 f(p)\,\pi^*(\hat{p} \mid p)\,dp$ is the endogenous marginal distribution of reports. Equation~\eqref{eq:gibbs} and the definition of $q$ must be solved simultaneously as a fixed-point problem.
+\end{proposition}
+
+\begin{proof}
+Write the objective~\eqref{eq:ri-problem} in full, substituting the definition of mutual information:
+\[
+\mathcal{J}[\pi] = \int_0^1 f(p) \int_0^1 \pi(\hat{p} \mid p) \left[ V_p(\hat{p}) - c \ln \frac{\pi(\hat{p} \mid p)}{q(\hat{p})} \right] d\hat{p}\, dp.
+\]
+We maximize $\mathcal{J}$ over $\pi(\hat{p} \mid p)$ subject to the constraint $\int_0^1 \pi(\hat{p} \mid p)\,d\hat{p} = 1$ for each $p$. Treating $q(\hat{p})$ as fixed (we verify consistency below), introduce Lagrange multipliers $\lambda(p)$ for the normalization constraints and take the functional derivative with respect to $\pi(\hat{p} \mid p)$:
+\[
+\frac{\delta}{\delta \pi(\hat{p} \mid p)} \left[ \mathcal{J}[\pi] - \int_0^1 \lambda(p) \left(\int_0^1 \pi(\hat{p} \mid p)\,d\hat{p} - 1\right) dp \right] = 0.
+\]
+This gives the first-order condition:
+\[
+f(p) \left[ V_p(\hat{p}) - c \ln \frac{\pi(\hat{p} \mid p)}{q(\hat{p})} - c \right] = \lambda(p).
+\]
+Solving for $\pi(\hat{p} \mid p)$:
+\[
+\pi(\hat{p} \mid p) = q(\hat{p}) \exp\!\left(\frac{V_p(\hat{p}) - c - \lambda(p)/f(p)}{c}\right).
+\]
+The terms that do not depend on $\hat{p}$ are absorbed into the normalizing constant $Z(p)$, giving~\eqref{eq:gibbs}. The second functional derivative is $-c\,f(p)/\pi(\hat{p} \mid p) < 0$, confirming that this is a maximum. Finally, the marginal $q(\hat{p}) = \int_0^1 f(p)\,\pi^*(\hat{p} \mid p)\,dp$ must be consistent with the $q$ appearing in~\eqref{eq:gibbs}, which determines $q$ as the fixed point of this self-consistency condition.
+\end{proof}
+
+This is the continuous analogue of the multinomial logit model: the probability of reporting $\hat{p}$ given state $p$ is proportional to the unconditional reporting probability $q(\hat{p})$ scaled exponentially by the payoff $V_p(\hat{p})/c$. Reports with higher expected scores are exponentially more likely, with the sensitivity controlled by $1/c$.
+
+\paragraph{Limiting behavior.}
+\begin{itemize}
+\item As $c \to 0$: $\pi^*(\hat{p} \mid p)$ concentrates on $\arg\max_{\hat{p}} V_p(\hat{p}) = p$ (by strict properness). The agent acquires perfect information and reports truthfully.
+\item As $c \to \infty$: $\pi^*(\hat{p} \mid p) \to q_0(\hat{p})$, independent of $p$. Information is too expensive; the agent's report reveals nothing about the state.
+\end{itemize}
+
+\paragraph{Automatic support.} Since $\pi^*(\hat{p} \mid p)$ is supported on $[0,1]$, the reported probability automatically satisfies $\hat{p} \in [0,1]$. There is no boundary/support problem---unlike the additive noise model, where $\hat{p} = p - \theta/G''(p)$ can fall outside $[0,1]$.
+
+
+\section{Application to scoring rules}
+
+\subsection{Setup}
+
+The agent faces a strictly proper scoring rule $S$ with entropy function $G$. The true probability $p \in (0,1)$ is unknown to the agent, who holds prior $f(p)$. By~\eqref{eq:gibbs}, the optimal conditional reporting distribution is:
+\begin{equation}\label{eq:gibbs-scoring}
+\pi^*(\hat{p} \mid p) = \frac{q(\hat{p})\,\exp(V_p(\hat{p})/c)}{Z(p)},
+\end{equation}
+where $V_p(\hat{p}) = p\,S(\hat{p},1) + (1-p)\,S(\hat{p},0)$ has a unique maximum at $\hat{p} = p$ by strict properness, and $q(\hat{p})$ is the endogenous marginal (Section~\ref{sec:mu0}). The agent's actual report is a draw from $\pi^*(\hat{p} \mid p)$.
+
+\subsection{Gaussian approximation}\label{sec:gaussian-approx}
+
+For small $c$ (i.e., when information is cheap and the agent acquires high-precision signals), $\pi^*(\hat{p} \mid p)$ is sharply peaked around the maximum of $V_p$ at $\hat{p} = p$. We can approximate $V_p$ by its second-order Taylor expansion around $p$:
+\[
+V_p(\hat{p}) \approx V_p(p) + \frac{1}{2}\,V_p''(p)\,(\hat{p} - p)^2.
+\]
+The first-order term $V_p'(p)(\hat{p}-p)$ vanishes because $V_p'(p) = 0$ by properness. To evaluate the second derivative $V_p''(p)$, recall that every strictly proper scoring rule admits a representation in terms of a convex function $G$ (the \emph{entropy function} or \emph{expected score function}):
+\[
+S(\hat{p}, 1) = G(\hat{p}) + G'(\hat{p})(1 - \hat{p}), \qquad S(\hat{p}, 0) = G(\hat{p}) - G'(\hat{p})\,\hat{p}.
+\]
+The expected score when the true probability is $p$ is then:
+\[
+V_p(\hat{p}) = p\,S(\hat{p},1) + (1-p)\,S(\hat{p},0) = G(\hat{p}) + G'(\hat{p})(p - \hat{p}).
+\]
+Differentiating with respect to $\hat{p}$:
+\[
+V_p'(\hat{p}) = G'(\hat{p}) + \frac{d}{d\hat{p}}\!\big[G'(\hat{p})(p - \hat{p})\big] = G'(\hat{p}) + G''(\hat{p})(p - \hat{p}) - G'(\hat{p}) = G''(\hat{p})(p - \hat{p}),
+\]
+which confirms $V_p'(p) = 0$. Differentiating once more:
+\[
+V_p''(\hat{p}) = G'''(\hat{p})(p - \hat{p}) - G''(\hat{p}).
+\]
+Evaluating at $\hat{p} = p$, the first term vanishes and we obtain:
+\[
+V_p''(p) = -G''(p).
+\]
+Since $V_p$ has a strict maximum at $p$, we have $G''(p) > 0$. Substituting into the Gibbs distribution and writing $\delta = \hat{p} - p$:
+\begin{equation}\label{eq:gaussian-approx}
+\pi^*(\hat{p} \mid p) \propto q(\hat{p})\,\exp\!\left(-\frac{G''(p)}{2c}\,\delta^2\right).
+\end{equation}
+It remains to show that the endogenous marginal $q(\hat{p})$ does not affect the first-order term in the small-$c$ expansion of the variance. Expand $q$ around $\hat{p} = p$:
+\[
+q(\hat{p}) = q(p) + q'(p)\,\delta + O(\delta^2).
+\]
+We can drop the $O(\delta^2)$ remainder: under the Gaussian kernel, the typical size of $\delta$ is $O(\sqrt{c})$, so $\delta^2 = O(c)$, and the $O(\delta^2)$ term in $q$ produces only an $O(c)$ multiplicative correction to the density. As we will see below, this affects the variance only at order $O(c^2)$, which we are already neglecting. Substituting into~\eqref{eq:gaussian-approx}:
+\[
+\pi^*(\hat{p} \mid p) \propto \big[q(p) + q'(p)\,\delta\big]\,\exp\!\left(-\frac{G''(p)}{2c}\,\delta^2\right).
+\]
+The leading term $q(p)$ does not depend on $\hat{p}$, so we can factor it out of the proportionality (it is absorbed into the normalizing constant $Z(p)$):
+\[
+\pi^*(\hat{p} \mid p) \propto \left(1 + \frac{q'(p)}{q(p)}\,\delta\right)\,\exp\!\left(-\frac{G''(p)}{2c}\,\delta^2\right).
+\]
+We now compute the mean and variance of $\delta$ under this density. Write $a = G''(p)/(2c)$ for brevity. We will use the standard Gaussian integral identities:
+\[
+\int_{-\infty}^{\infty} e^{-a\delta^2}\,d\delta = \sqrt{\frac{\pi}{a}}, \qquad \int_{-\infty}^{\infty} \delta^2\,e^{-a\delta^2}\,d\delta = \frac{1}{2a}\sqrt{\frac{\pi}{a}},
+\]
+and $\int_{-\infty}^{\infty} \delta\,e^{-a\delta^2}\,d\delta = 0$ by antisymmetry (the integrand is an odd function).
+
+For the mean:
+\[
+\langle \delta \rangle = \frac{\displaystyle\int \delta\,\left(1 + \frac{q'(p)}{q(p)}\,\delta\right)\,e^{-a\delta^2}\,d\delta}{\displaystyle\int \left(1 + \frac{q'(p)}{q(p)}\,\delta\right)\,e^{-a\delta^2}\,d\delta}.
+\]
+In the numerator, $\int \delta\,e^{-a\delta^2}\,d\delta = 0$ by antisymmetry, and the remaining term is $\frac{q'(p)}{q(p)}\int \delta^2\,e^{-a\delta^2}\,d\delta = \frac{q'(p)}{q(p)} \cdot \frac{1}{2a}\sqrt{\frac{\pi}{a}}$. In the denominator, the antisymmetric term $\frac{q'(p)}{q(p)}\int \delta\,e^{-a\delta^2}\,d\delta = 0$ vanishes, leaving $\sqrt{\frac{\pi}{a}}$. Therefore:
+\[
+\langle \delta \rangle = \frac{q'(p)}{q(p)} \cdot \frac{1}{2a} = \frac{q'(p)}{q(p)} \cdot \frac{c}{G''(p)} = O(c).
+\]
+To obtain the variance, recall that $\operatorname{Var}(\delta) = \langle \delta^2 \rangle - \langle \delta \rangle^2$, so we also need the second moment $\langle \delta^2 \rangle$. Applying the same identities to the numerator: $\int \delta^2\,e^{-a\delta^2}\,d\delta = \frac{1}{2a}\sqrt{\frac{\pi}{a}}$, while $\frac{q'}{q}\int\delta^3\,e^{-a\delta^2}\,d\delta = 0$ by antisymmetry. Thus $\langle \delta^2 \rangle = \frac{1}{2a} = c/G''(p)$ (plus $O(c^2)$ corrections from the higher-order terms in $q$ that we dropped). The variance is then:
+\[
+\operatorname{Var}(\delta) = \langle \delta^2 \rangle - \langle \delta \rangle^2 = \frac{c}{G''(p)} + O(c^2) - O(c^2) = \frac{c}{G''(p)} + O(c^2).
+\]
+Note that $q$ enters this expression only through the mean shift $\langle \delta \rangle = \frac{q'(p)}{q(p)} \cdot \frac{c}{G''(p)}$, and this affects the variance only via the $-\langle \delta \rangle^2$ term, which is of order $c^2$. The first-order term $c/G''(p)$ is the same regardless of the form of $q$. For small $c$ we therefore have:
+\begin{equation}\label{eq:ri-gaussian}
+\hat{p} - p \;\sim\; N\!\left(0,\; \frac{c}{G''(p)}\right) \quad \text{(approximately)}.
+\end{equation}
+
+\subsection{Reporting variance}
+
+The key result is:
+\begin{equation}\label{eq:ri-variance}
+\boxed{\operatorname{Var}(\hat{p} - p \mid p) \approx \frac{c}{G''(p)}.}
+\end{equation}
+
+This should be compared with the additive noise model, where $\operatorname{Var}(\hat{p} - p) \approx \sigma^2/[G''(p)]^2$. The two models differ in two ways:
+\begin{enumerate}
+\item \textbf{Dependence on curvature.} The rational inattention variance scales as $1/G''(p)$, while the additive noise variance scales as $1/[G''(p)]^2$. The rational inattention model has a \emph{weaker} dependence on curvature: doubling the curvature halves the variance (rather than reducing it by a factor of four). This is because in the RI model, the noise is endogenous---the agent's precision adapts to the payoff landscape---whereas in the additive noise model, the noise magnitude $\sigma^2$ is fixed and only the ``restoring force'' $G''(p)$ changes.
+
+\item \textbf{Behavioral parameter.} The noise level is controlled by $c$ (information cost) rather than $\sigma^2$ (exogenous noise variance). The parameter $c$ has a clear interpretation: it is the marginal cost of information processing, measured in the same units as the scoring rule payments.
+\end{enumerate}
+
+\begin{remark}[Intuition for the difference in curvature dependence]
+In the additive noise model, the agent faces a fixed perturbation $\theta$ to their first-order condition and must ``resist'' it using the curvature $G''(p)$ of the expected score. The resulting error $\hat{p} - p \approx \theta/G''(p)$ depends on the ratio of noise to curvature, giving variance $\propto 1/[G''(p)]^2$.
+
+In the rational inattention model, the agent optimally chooses how much information to acquire. The Gibbs distribution concentrates where $V_p$ is high relative to its surroundings; the ``width'' of this concentration is determined by the ratio $c/|V_p''(p)| = c/G''(p)$. Higher curvature $G''(p)$ means the payoff drops off more steeply around the truth, making it more valuable to acquire precise information---but the curvature enters the variance only once (through the width of the Gibbs peak), not twice as in the noise-to-curvature ratio of the additive model.
+\end{remark}
+
+
+\section{The principal's problem under rational inattention}
+
+\subsection{The principal's decision problem}
+
+The principal faces a binary uncertain event $X \in \{0,1\}$ with $\Pr(X=1) = p$, and must choose a decision $d$ to maximize expected utility $u(d,p) = p\,u(d,1) + (1-p)\,u(d,0)$. The principal does not know $p$ and delegates its estimation to the agent; given the agent's report $\hat{p}$, the principal acts with the optimal decision
+\[
+d^*(\hat{p}) = \arg\max_d\; \hat{p}\,u(d,1) + (1-\hat{p})\,u(d,0),
+\]
+which satisfies the first-order condition
+\begin{equation}\label{eq:principal-foc}
+\hat{p}\,u'(d^*(\hat{p}),1) + (1-\hat{p})\,u'(d^*(\hat{p}),0) = 0.
+\end{equation}
+We assume $u(d,x)$ is strictly concave in $d$ for each $x$ and that $d^*(\hat{p})$ is uniquely defined with $(d^*)'(\hat{p}) \neq 0$.
+
+\subsection{Expected loss from reporting error}
+
+When the true probability is $p$ but the agent reports $\hat{p}$, the principal's loss relative to the full-information benchmark is:
+\[
+L = u(d^*(p),p) - u(d^*(\hat{p}),p).
+\]
+We expand $u(d^*(\hat{p}),p)$ to second order in $\delta = \hat{p} - p$ by differentiating with respect to $\hat{p}$. The first derivative is:
+\[
+\frac{d}{d\hat{p}}\,u(d^*(\hat{p}),p) = u'(d^*(\hat{p}),p)\cdot (d^*)'(\hat{p}).
+\]
+At $\hat{p} = p$, this vanishes because $u'(d^*(p),p) = 0$ by the first-order condition~\eqref{eq:principal-foc}. The second derivative is:
+\[
+\frac{d^2}{d\hat{p}^2}\,u(d^*(\hat{p}),p) = u''(d^*(\hat{p}),p)\cdot[(d^*)'(\hat{p})]^2 + u'(d^*(\hat{p}),p)\cdot(d^*)''(\hat{p}).
+\]
+At $\hat{p} = p$, the second term again vanishes ($u'(d^*(p),p)=0$), leaving:
+\[
+\frac{d^2}{d\hat{p}^2}\,u(d^*(\hat{p}),p)\bigg|_{\hat{p}=p} = u''(d^*(p),p)\cdot[(d^*)'(p)]^2,
+\]
+where $u''(d^*(p),p) = p\,u''(d^*(p),1) + (1-p)\,u''(d^*(p),0) < 0$ by strict concavity. Define the \emph{principal's sensitivity}:
+\begin{equation}\label{eq:H-def}
+H(p) \equiv u''(d^*(p),p)\cdot[(d^*)'(p)]^2.
+\end{equation}
+Note that $H(p) < 0$. The magnitude $|H(p)|$ measures how sensitive the principal's utility is to small errors in the reported probability: it is large when the utility is sharply curved at the optimum (large $|u''|$) or when the optimal decision changes rapidly with the estimate (large $|(d^*)'|$). The Taylor expansion gives:
+\[
+L \approx -\frac{1}{2}\,H(p)\cdot\delta^2 = \frac{1}{2}\,|H(p)|\cdot\delta^2.
+\]
+
+Taking expectations using the reporting variance~\eqref{eq:ri-variance}:
+\begin{equation}\label{eq:ri-expected-loss}
+\mathbb{E}[L \mid p] \approx \frac{|H(p)|\,c}{2\,G''(p)}.
+\end{equation}
+
+Compare with the additive noise model: $\mathbb{E}[L \mid p] \approx \sigma^2|H(p)|/[2\,G''(p)^2]$. The expected loss now scales as $1/G''(p)$ rather than $1/[G''(p)]^2$.
+
+\subsection{The scaling problem and net utility}
+
+Replacing $S$ with $aS$ for $a > 1$ scales $G''(p)$ by $a$, reducing the expected loss by a factor of $a$. As $a \to \infty$, the loss vanishes for any strictly proper scoring rule, so comparing rules without constraining the scale of payments is meaningless. We therefore introduce a cost $\alpha > 0$ per unit of expected payment: when the agent reports approximately truthfully, the expected payment at belief $p$ is $G(p)$, and the principal's net expected utility at a given $p$ is
+\[
+-\mathbb{E}[L \mid p] - \alpha\,G(p) \approx -\frac{c\,|H(p)|}{2\,G''(p)} - \alpha\,G(p).
+\]
+Integrating over the prior $f(p)$ on $p$, the principal's problem is:
+\begin{equation}\label{eq:ri-principal-problem}
+\max_{S \in \mathcal{S}} \int_0^1 \left[-\frac{c\,|H(p)|\,f(p)}{2\,G''(p)} - \alpha\,G(p)\,f(p)\right] dp,
+\end{equation}
+where $\mathcal{S}$ is the set of strictly proper scoring rules with $S(\hat{p},x) \geq 0$ (limited liability).
+
+\subsection{Green's function representation}
+
+To optimize over the curvature $g(p) = G''(p) > 0$, we express $G$ as a linear functional of $g$. The standard representation of proper scoring rules gives $S(\hat{p},1) = G(\hat{p}) + (1-\hat{p})\,G'(\hat{p})$ and $S(\hat{p},0) = G(\hat{p}) - \hat{p}\,G'(\hat{p})$; limited liability $S(\hat{p},x) \geq 0$ reduces to the two boundary conditions $G(0) + G'(0) \geq 0$ and $G(1) - G'(1) \geq 0$. Since adding an affine function to $G$ does not change $G''$, the principal minimizes payments by choosing both constraints to bind:
+\[
+G(0) + G'(0) = 0, \qquad G(1) - G'(1) = 0.
+\]
+Integrating $G''(p) = g(p)$ twice and applying these boundary conditions, one obtains (see the derivation in the companion note):
+\begin{equation}\label{eq:greens}
+G(p) = \int_0^1 K(p,t)\,g(t)\,dt,
+\end{equation}
+where the Green's function is:
+\begin{equation}\label{eq:kernel}
+K(p,t) = \begin{cases} p(1-t), & t \leq p, \\ t(1-p), & t > p. \end{cases}
+\end{equation}
+Note that $K(p,t) = K(t,p) \geq 0$, so $G(p) \geq 0$.
+
+\subsection{Separable reformulation}
+
+Substituting~\eqref{eq:greens} into the payment term and swapping the order of integration, we define the \emph{cost-of-curvature function}:
+\begin{equation}\label{eq:phi-def}
+\phi(p) \equiv \int_0^1 K(t,p)\,f(t)\,dt.
+\end{equation}
+The magnitude $\phi(p)$ measures the prior-weighted cost of adding curvature at $p$: increasing $g(p)$ raises $G(t)$ for all $t$, and $\phi(p)$ aggregates this increase weighted by $f$. The principal's objective~\eqref{eq:ri-principal-problem} becomes:
+\begin{equation}\label{eq:ri-objective}
+\max_{g > 0} \int_0^1 \left[-\frac{c\,|H(p)|\,f(p)}{2\,g(p)} - \alpha\,\phi(p)\,g(p)\right] dp.
+\end{equation}
+This is separable in $g$: the integrand at each $p$ depends only on $g(p)$, so the optimization can be performed pointwise.
+
+\subsection{Pointwise optimization}
+
+At each $p$, we maximize:
+\[
+h(g) = -\frac{c\,|H(p)|\,f(p)}{2g} - \alpha\,\phi(p)\,g.
+\]
+Both terms are negative ($h$ is the sum of a term $\propto -1/g$ and a term $\propto -g$). The first derivative is:
+\[
+h'(g) = \frac{c\,|H(p)|\,f(p)}{2g^2} - \alpha\,\phi(p).
+\]
+Setting $h'(g) = 0$:
+\[
+g^2 = \frac{c\,|H(p)|\,f(p)}{2\alpha\,\phi(p)}.
+\]
+The second derivative is $h''(g) = -c\,|H(p)|\,f(p)/g^3 < 0$, confirming a maximum. The optimal curvature is:
+\begin{equation}\label{eq:ri-optimal-curvature}
+\boxed{G''(p)^*_{\mathrm{RI}} = \sqrt{\frac{c\,|H(p)|\,f(p)}{2\alpha\,\phi(p)}}.}
+\end{equation}
+
+\subsection{Comparison with the additive noise model}
+
+The additive noise model yields $G''(p)^* = ({\sigma^2|H(p)|f(p)}/{(\alpha\,\phi(p))})^{1/3}$. Both models share the same \emph{curvature allocation principle}: concentrate curvature where
+\begin{itemize}
+\item errors are costly ($|H(p)|$ large),
+\item the base rate is likely ($f(p)$ large),
+\item curvature is cheap ($\phi(p)$ small).
+\end{itemize}
+The key difference is the \emph{exponent}: $1/2$ under rational inattention versus $1/3$ under additive noise. The RI model produces a more heterogeneous curvature profile---it responds more aggressively to variation in $|H(p)|\,f(p)/\phi(p)$. This is because the weaker dependence of variance on curvature ($1/g$ vs.\ $1/g^2$) means the marginal benefit of additional curvature diminishes less rapidly, so it pays to push curvature higher where the benefit-to-cost ratio is favorable.
+
+\begin{table}[h]
+\centering
+\caption{Comparison of the two models.}
+\begin{tabular}{l|cc}
+& Additive noise & Rational inattention \\
+\hline
+Reporting variance & $\sigma^2/[G''(p)]^2$ & $c/G''(p)$ \\[4pt]
+Expected loss & $\sigma^2|H|/[2g^2]$ & $c|H|/[2g]$ \\[4pt]
+Optimal curvature & $\left(\frac{\sigma^2|H|f}{\alpha\phi}\right)^{1/3}$ & $\left(\frac{c|H|f}{2\alpha\phi}\right)^{1/2}$ \\[8pt]
+Exponent & $1/3$ & $1/2$ \\[4pt]
+Noise parameter & $\sigma^2$ (exogenous) & $c$ (information cost) \\[4pt]
+Support of $\hat{p}$ & $\mathbb{R}$ (requires clipping) & $[0,1]$ (automatic) \\
+\end{tabular}
+\end{table}
+
+
+\section{When is $S_u$ optimal?}
+
+For the decision-matched scoring rule $S_u$, the curvature is $G''(p) = |H(p)|$. Substituting into~\eqref{eq:ri-optimal-curvature}, $S_u$ is optimal if and only if:
+\[
+|H(p)| = \sqrt{\frac{c\,|H(p)|\,f(p)}{2\alpha\,\phi(p)}},
+\]
+which simplifies to:
+\begin{equation}\label{eq:ri-Su-condition}
+|H(p)|\,\phi(p) / f(p) = c/(2\alpha) \quad \text{(constant in } p\text{)}.
+\end{equation}
+Compare with the additive noise condition $|H(p)|^2\,\phi(p)/f(p) = \text{const}$. The RI condition is \emph{weaker}: it requires $|H|\phi/f$ to be constant, while the additive noise condition requires $|H|^2\phi/f$ to be constant.
+
+\paragraph{Counterexample.} For $u(d,x) = -(d-x)^2$ and $f \equiv 1$: $|H(p)| = 2$ and $\phi(p) = (p^2-p+1)/2$. The condition~\eqref{eq:ri-Su-condition} requires $2 \cdot (p^2-p+1)/2 = p^2-p+1$ to be constant, which fails (it ranges from $3/4$ to $1$). The Brier score is still suboptimal, but for the same reason as before: $\phi(p)$ is not constant.
+
+The optimal curvature in this case is:
+\[
+G''(p)^*_{\mathrm{RI}} = \sqrt{\frac{c \cdot 2}{\alpha(p^2-p+1)}} = \sqrt{\frac{2c}{\alpha(p^2-p+1)}}.
+\]
+
+
+\section{Existence of the optimal scoring rule}
+
+The argument is identical to the additive noise case. Define $G^*(p) = \int_0^1 K(p,t)\,g^*(t)\,dt$ where $g^* = G''^*_{\mathrm{RI}}$. Since $g^*(p) > 0$ and is bounded (under the same conditions as before: $|H(p)|f(p)/\phi(p)$ bounded), the integral is well-defined. The Green's function construction automatically satisfies the boundary conditions $G^*(0) + (G^*)'(0) = 0$ and $G^*(1) - (G^*)'(1) = 0$, ensuring limited liability. The resulting scoring rule via the standard representation is strictly proper and satisfies $S^*(\hat{p},x) \geq 0$.
+
+
+\section{Tail probability of large errors}\label{sec:ri-tail}
+
+A major advantage of the rational inattention model is that the Gibbs distribution provides exponential bounds on the probability of large reporting errors, with the exponential rate determined exactly by the scoring rule's regret structure. This should be contrasted with the additive noise model, where exponential tail decay relies on both the Gaussian assumption and Mill's ratio approximation.
+
+\subsection{The regret function}
+
+For a strictly proper scoring rule $S$, the expected score $V_p(\hat{p})$ has a unique global maximum at $\hat{p} = p$. Define the \emph{regret function}:
+\begin{equation}\label{eq:regret}
+R_p(\hat{p}) \equiv V_p(p) - V_p(\hat{p}) \geq 0,
+\end{equation}
+with equality only at $\hat{p} = p$. The regret $R_p(\hat{p})$ measures the expected score the agent sacrifices by reporting $\hat{p}$ instead of the truth. By strict properness, $R_p$ is strictly positive for $\hat{p} \neq p$, continuous, and satisfies $R_p(\hat{p}) \to R_p(0) > 0$ and $R_p(\hat{p}) \to R_p(1) > 0$ as $\hat{p}$ approaches the boundaries.
+
+\subsection{Exponential tail bound}
+
+Under the Gibbs distribution~\eqref{eq:gibbs-scoring}, the conditional probability of a reporting error exceeding $\Delta > 0$, given the true state $p$, is:
+\begin{equation}\label{eq:tail-exact-integral}
+\Pr(|\hat{p} - p| > \Delta \mid p) = \frac{\int_{|\hat{p}-p|>\Delta} q(\hat{p})\,\exp(V_p(\hat{p})/c)\,d\hat{p}}{\int_0^1 q(\hat{p})\,\exp(V_p(\hat{p})/c)\,d\hat{p}}.
+\end{equation}
+
+Define the \emph{minimum regret at distance $\Delta$}:
+\begin{equation}\label{eq:min-regret}
+R^*(\Delta, p) \equiv \min_{\substack{\hat{p} \in [0,1] \\ |\hat{p} - p| \geq \Delta}} R_p(\hat{p}) = V_p(p) - \max_{\substack{\hat{p} \in [0,1] \\ |\hat{p} - p| \geq \Delta}} V_p(\hat{p}).
+\end{equation}
+This is the smallest payoff sacrifice the agent incurs by making an error of at least $\Delta$. By strict properness and continuity, $R^*(\Delta, p) > 0$ for all $\Delta > 0$ and $p \in (0,1)$, and $R^*$ is increasing in $\Delta$ (for $\Delta < \max(p, 1-p)$).
+
+\begin{proposition}[Exponential tail bound]\label{prop:tail-bound}
+For any strictly proper scoring rule $S$, information cost $c > 0$, true probability $p \in (0,1)$, and threshold $\Delta > 0$, the tail probability decays exponentially in the minimum regret:
+\begin{equation}\label{eq:tail-bound}
+\Pr(|\hat{p} - p| > \Delta \mid p) = O\!\left(\exp\!\left(-\frac{R^*(\Delta, p)}{c}\right)\right) \quad \text{as } c \to 0,
+\end{equation}
+where the implicit constant depends on $p$, $\Delta$, and the marginal $q$, but not on $c$.
+\end{proposition}
+
+\begin{proof}
+Let $\bar{q} = \sup_{\hat{p} \in [0,1]} q(\hat{p})$ and $\underline{q}(\epsilon) = \inf_{\hat{p} \in [p-\epsilon,\, p+\epsilon]} q(\hat{p})$ for some small $\epsilon > 0$. Since $q$ is a positive continuous density on $(0,1)$, both are finite and positive.
+
+In the numerator of~\eqref{eq:tail-exact-integral}, for every $\hat{p}$ with $|\hat{p}-p| \geq \Delta$:
+\[
+q(\hat{p})\,\exp(V_p(\hat{p})/c) \leq \bar{q}\,\exp\!\big((V_p(p) - R^*(\Delta,p))/c\big).
+\]
+Therefore the numerator is at most $\bar{q}\,\exp\!\big((V_p(p) - R^*)/c\big)$.
+
+The denominator is bounded below by restricting to a neighborhood of $p$. Choose $\epsilon \leq \min(p, 1-p, \Delta)$. On $[p-\epsilon,\,p+\epsilon]$, we have $V_p(\hat{p}) \geq V_p(p) - R^*(\epsilon, p)$, so:
+\[
+\int_0^1 q(\hat{p})\,\exp(V_p(\hat{p})/c)\,d\hat{p} \geq 2\epsilon\,\underline{q}(\epsilon)\,\exp\!\big((V_p(p) - R^*(\epsilon,p))/c\big).
+\]
+Taking the ratio:
+\[
+\Pr(|\hat{p}-p|>\Delta \mid p) \leq \frac{\bar{q}}{2\epsilon\,\underline{q}(\epsilon)}\,\exp\!\left(-\frac{R^*(\Delta,p) - R^*(\epsilon,p)}{c}\right).
+\]
+Since $R^*(\epsilon, p) \to 0$ as $\epsilon \to 0$ and $R^*(\Delta,p) > 0$, for any fixed $\Delta$ the exponential factor dominates. In particular, the tail probability decays as $\exp(-R^*(\Delta,p)/c)$ up to a polynomial prefactor that depends on $q$ and $\epsilon$ but not on $c$.
+\end{proof}
+
+The bound~\eqref{eq:tail-bound} has several notable features:
+
+\begin{itemize}
+\item \textbf{Exponential rate from the Gibbs structure.} The rate $R^*(\Delta,p)/c$ is a direct consequence of the Gibbs form~\eqref{eq:gibbs}---not of a Gaussian approximation. The exponential decay holds for the exact optimal reporting distribution at any $c$, with only the prefactor depending on the endogenous marginal $q$.
+
+\item \textbf{Structural.} The exponential rate depends on the scoring rule only through the regret function $R_p$, which directly measures how strongly the scoring rule penalizes errors of a given size. Scoring rules with larger regret at distance $\Delta$ produce exponentially smaller tail probabilities.
+
+\item \textbf{Properness is sufficient.} The bound requires only that $V_p$ has a strict global maximum at $p$---i.e., that the scoring rule is strictly proper. No additional regularity (smoothness, convexity of $G$, etc.) is needed.
+\end{itemize}
+
+\subsection{Quadratic approximation of the regret}
+
+For small $\Delta$, the regret is well approximated by the second-order Taylor expansion of $V_p$ around $p$:
+\begin{equation}\label{eq:regret-quadratic}
+R_p(p \pm \Delta) = V_p(p) - V_p(p \pm \Delta) \approx \frac{1}{2}\,G''(p)\,\Delta^2.
+\end{equation}
+Substituting into the tail bound~\eqref{eq:tail-bound}:
+\begin{equation}\label{eq:tail-gaussian-recovery}
+\Pr(|\hat{p} - p| > \Delta \mid p) \;\lesssim\; \exp\!\left(-\frac{G''(p)\,\Delta^2}{2c}\right).
+\end{equation}
+This recovers the Gaussian tail: recall from~\eqref{eq:ri-gaussian} that $\hat{p} - p \sim N(0, c/G''(p))$ approximately, which gives $\Pr(|\hat{p}-p|>\Delta) = 2\,\bar{\Phi}(\Delta\sqrt{G''(p)/c})$, and $\bar{\Phi}(z) \sim \exp(-z^2/2)$ for large $z$. The Gibbs framework thus shows that the Gaussian tail formula is a consequence of the deeper exponential structure of the Gibbs distribution---the Gaussian approximation captures the correct exponent but is not needed to establish exponential decay.
+
+\subsection{Large errors and the exact regret}
+
+For large $\Delta$---where the Gaussian approximation may be inaccurate---the exact regret $R^*(\Delta,p)$ provides a tighter bound. The regret function $R_p(\hat{p})$ encodes the full nonlinear shape of the expected score, not just its local curvature. In particular:
+
+\begin{itemize}
+\item For the \textbf{Brier score}, $V_p(\hat{p}) = -(\hat{p}-p)^2 + \text{const}$, so $R_p(\hat{p}) = (\hat{p}-p)^2$ and $R^*(\Delta,p) = \Delta^2$ (for $\Delta \leq \max(p,1-p)$). The quadratic approximation is exact.
+
+\item For the \textbf{log score}, $R_p(\hat{p}) = p\ln(p/\hat{p}) + (1-p)\ln((1-p)/(1-\hat{p}))$, the KL divergence between $(p,1-p)$ and $(\hat{p},1-\hat{p})$. This grows faster than quadratically as $\hat{p} \to 0$ or $\hat{p} \to 1$, providing stronger tail protection near the boundaries than the Gaussian approximation would suggest.
+\end{itemize}
+
+\subsection{Implications for scoring rule comparison}
+
+For two scoring rules $S_1$ and $S_2$ with regret functions $R^*_1(\Delta,p)$ and $R^*_2(\Delta,p)$, the ratio of tail probabilities is bounded by:
+\begin{equation}\label{eq:tail-ratio-ri}
+\frac{\Pr_1(|\hat{p}-p|>\Delta \mid p)}{\Pr_2(|\hat{p}-p|>\Delta \mid p)} \;\lesssim\; \exp\!\left(-\frac{R^*_1(\Delta,p) - R^*_2(\Delta,p)}{c}\right).
+\end{equation}
+When $R^*_1 > R^*_2$, scoring rule $S_1$ provides exponentially better tail protection, and the advantage grows as $c$ decreases (more attentive agents) or as $\Delta$ increases (larger error thresholds). This exponential sensitivity to the regret structure makes the choice of scoring rule far more consequential for tail risk than the variance analysis alone would indicate.
+
+
+\section{Efficiency of the pass-through rule}
+
+\subsection{Setup}
+
+In the subcontracting setting ($|H(p)| = G_0''(p) \equiv B(p)$), we compare the optimal curvature~\eqref{eq:ri-optimal-curvature} against the pass-through rule $g(p) = a\,B(p)$ for optimally chosen $a > 0$.
+
+\subsection{Optimal rule value}
+
+At the optimum $g^* = \sqrt{c\,B\,f/(2\alpha\phi)}$, the integrand evaluates to (writing $A = c\,|H|\,f/2 = c\,B\,f/2$ and $C = \alpha\phi$):
+\[
+h(g^*) = -\frac{A}{g^*} - C\,g^* = -\frac{A}{\sqrt{A/C}} - C\sqrt{A/C} = -2\sqrt{AC}.
+\]
+Therefore:
+\begin{equation}\label{eq:ri-V-opt}
+V^*_{\mathrm{RI}} = -2\int_0^1 \sqrt{\frac{c\,B(p)\,f(p)}{2} \cdot \alpha\,\phi(p)} \; dp = -\sqrt{2c\alpha} \int_0^1 \sqrt{B(p)\,f(p)\,\phi(p)} \; dp.
+\end{equation}
+
+\subsection{Pass-through rule value}
+
+With $g = a\,B$:
+\[
+V(a) = \int_0^1 \left[-\frac{c\,B\,f}{2a\,B} - \alpha\,\phi\,a\,B\right]dp = -\frac{c}{2a}\underbrace{\int_0^1 f(p)\,dp}_{= 1} \;-\; \alpha\,a\underbrace{\int_0^1 \phi(p)\,B(p)\,dp}_{I_2}.
+\]
+(Here we used $|H| = B$ to cancel $B$ in the first term.) Optimizing over $a$:
+\[
+a^* = \sqrt{\frac{c}{2\alpha\,I_2}}, \qquad V_{\mathrm{pass}} = -\sqrt{2c\alpha\,I_2}.
+\]
+
+\subsection{Efficiency ratio}
+
+\begin{equation}\label{eq:ri-efficiency}
+\eta_{\mathrm{RI}} = \frac{V^*_{\mathrm{RI}}}{V_{\mathrm{pass}}} = \frac{\displaystyle\int_0^1 \sqrt{B(p)\,f(p)\,\phi(p)}\;dp}{\displaystyle\sqrt{\int_0^1 \phi(p)\,B(p)\,dp}},
+\end{equation}
+where we used $\int f = 1$. By the Cauchy--Schwarz inequality applied to $\int \sqrt{u \cdot v}\,dp \leq \sqrt{\int u\,dp \cdot \int v\,dp}$ with $u = B\,f$ and... actually, let us verify $\eta \leq 1$ directly. We need:
+\[
+\left(\int_0^1 \sqrt{B\,f\,\phi}\;dp\right)^2 \leq \int_0^1 \phi\,B\,dp.
+\]
+By Cauchy--Schwarz, $\int \sqrt{Bf\phi}\,dp = \int \sqrt{f} \cdot \sqrt{B\phi}\,dp \leq \sqrt{\int f\,dp} \cdot \sqrt{\int B\phi\,dp} = \sqrt{\int B\phi\,dp}$. Squaring gives the desired inequality. Equality holds iff $f \propto B\phi$, i.e., $B(p)\,\phi(p)/f(p) = \text{const}$, which is exactly the condition~\eqref{eq:ri-Su-condition} for $S_u$ to be optimal.
+
+As in the additive noise model, $\eta$ is \textbf{parameter-free}: it depends only on the shape functions $B$, $f$, and $\phi$, not on $c$ or $\alpha$.
+
+
+\section{Discussion}
+
+\subsection{Summary of advantages}
+
+The rational inattention model offers several structural improvements over the additive noise approach:
+
+\begin{enumerate}
+\item \textbf{Principled micro-foundation.} The reporting distribution (Gibbs/Boltzmann) is derived from optimal information acquisition under cognitive constraints, not assumed as an exogenous noise structure. The functional form requires no arbitrary specification of a noise function $m(\hat{p})$.
+
+\item \textbf{No boundary problem.} The Gibbs distribution on $[0,1]$ automatically produces reports in $[0,1]$. The clipping analysis required by the additive noise model is entirely unnecessary.
+
+\item \textbf{Exact tail bounds.} The exponential tail decay at rate $R^*(\Delta,p)/c$ follows from the Gibbs structure and properness alone (Proposition~\ref{prop:tail-bound}), requiring no Gaussian approximation or Mill's ratio. The regret function $R^*$ provides a complete, nonlinear characterization of tail risk that goes beyond the local curvature $G''(p)$.
+
+\item \textbf{Interpretable parameter.} The information cost $c$ has a clear meaning (marginal cost of acquiring information about the state) and is measured in the same units as the scoring rule payments, making it directly comparable to the payment cost $\alpha$.
+
+\item \textbf{Endogenous reference distribution.} The marginal $q(\hat{p})$ is determined as part of the solution, not specified by the modeler.
+\end{enumerate}
+
+\subsection{Potential concerns}
+
+\begin{enumerate}
+\item \textbf{Is $c$ exogenous?} The parameter $c$ represents the agent's marginal cost of processing information about the state $p$. If the agent can choose their level of attention (e.g., by deciding how long to investigate), then $c$ may itself depend on the scoring rule---agents may investigate more when the stakes are higher. This would lead to an endogenous $c$ model with a two-stage structure: the principal designs the scoring rule, and the agent jointly chooses investigation effort and report. For now, we treat $c$ as a fixed characteristic of the agent. This is the standard assumption in the rational inattention literature and is analogous to treating risk aversion as a fixed parameter in mechanism design.
+
+\item \textbf{Higher-order corrections.} The Gaussian approximation~\eqref{eq:ri-gaussian} is a second-order expansion valid for small $c$. For large $c$ or near the boundaries of $[0,1]$, higher-order terms become important. However, unlike the additive noise model, the exact Gibbs distribution~\eqref{eq:gibbs-scoring} remains available in closed form and can be evaluated numerically at any $c$. The tail bound of Proposition~\ref{prop:tail-bound} holds without any small-$c$ assumption.
+
+\item \textbf{Endogenous marginal $q$.} As discussed in Section~\ref{sec:mu0}, the marginal distribution of reports $q(\hat{p})$ is determined endogenously as part of the solution, not specified by the modeler. This is a strength of the information acquisition formulation: it avoids the need to choose an arbitrary reference distribution. Moreover, as shown in Section~\ref{sec:gaussian-approx}, $q$ does not affect the first-order term in the small-$c$ expansion of the variance or optimal curvature; it enters only through the prefactor in the tail bound and corrections of order $c^2$ and higher.
+\end{enumerate}
+
+\subsection{Relationship to the additive noise model}
+
+An alternative model assumes the agent maximizes $V_p(\hat{p}) + \theta\hat{p}$ where $\theta \sim N(0,\sigma^2)$ is an exogenous noise term. This yields reporting variance $\sigma^2/[G''(p)]^2$ and optimal curvature with exponent $1/3$ instead of $1/2$. The two models share the same qualitative curvature allocation principle---concentrate curvature where errors are costly, base rates likely, and curvature cheap---but differ in their quantitative predictions.
+
+The rational inattention model is the preferred framework for several reasons: it derives rather than assumes the noise structure, it avoids the boundary/clipping problem, and it provides exact (not approximate) tail bounds. Whether reporting variance scales as $1/G''$ or $1/[G'']^2$ is in principle an empirical question, testable with data on forecast dispersion under different scoring rules. The fact that both micro-foundations yield the same qualitative conclusions about optimal curvature allocation strengthens the paper's central message: it is not an artifact of a particular noise specification.
+
+\end{document}

@@ -17,6 +17,17 @@
 \begin{document}
 \maketitle
 
+\section{Empirical motivation}\label{sec:empirical_motivation}
+
+We assume that the agent does not perfectly maximize expected score but instead optimizes a noisy objective. Under standard theory, any strictly proper scoring rule should elicit identical truthful reports from a risk-neutral expected utility maximizer, so the choice among proper scoring rules would be irrelevant. Experimental evidence contradicts this prediction.
+
+Palfrey and Wang~\cite{palfrey2009} elicit probabilistic forecasts from trained observers using three scoring rules: quadratic (proper), logarithmic (proper), and linear (improper). Despite both proper rules being incentive-compatible under the classical model, the two rules produce significantly different forecast distributions. Forecasts under the quadratic rule are substantially more dispersed than those under the logarithmic rule: the average absolute deviation from $50\%$ is $16.4$ under the quadratic rule versus $10.2$ under the logarithmic rule, and the quadratic distribution stochastically dominates the logarithmic one in extremeness. The authors note that risk aversion under constant relative risk aversion cannot account for this difference, and leave the explanation as an open question.
+
+The random utility model provides a natural explanation. Under the quadratic (Brier) score, $G''(p) = 2$ is constant, while under the logarithmic score, $G''(p) = 1/[p(1-p)]$, which diverges as $p \to 0$ or $p \to 1$. By equation~\eqref{eq:variance}, the reporting variance at base rate $p$ is approximately $\sigma^2 / [G''(p)]^2$. The logarithmic rule therefore imposes a much steeper penalty for deviations near the boundaries of $[0,1]$, suppressing extreme reports---exactly the pattern observed by Palfrey and Wang.
+
+More broadly, the model belongs to the class of quantal response equilibrium (QRE) models introduced by McKelvey and Palfrey~\cite{mckelvey1995}, in which agents choose actions with probabilities increasing in expected payoff rather than deterministically best-responding. In such models, the shape of the payoff landscape affects the distribution of chosen actions, even when the set of optimal actions is identical across payoff specifications. The extensive experimental support for QRE across strategic settings (see Goeree, Holt, and Palfrey~\cite{goeree2016} for a survey) provides a behavioral foundation for our assumption that the scoring rule's curvature---not merely its properness---determines reporting quality.
+
+
 \section{Setup}
 Let $X$ be a binary random variable and let $p = \Pr(X = 1)$. The principal's ex ante utility function is given by:
 \[
@@ -105,7 +116,7 @@ The agent chooses $\hat{p} \in (0, 1)$ to maximize
 \[
 p \, S(\hat{p}, 1) + (1 - p) \, S(\hat{p}, 0) + \varepsilon(\hat{p}),
 \]
-where $\varepsilon(\hat{p}) = \theta \hat{p}$ with $\theta \sim N(0, \sigma^2)$. Here $\theta$ is a random shock to the agent's evaluation of candidate reports; the linear specification $\varepsilon(\hat{p}) = \theta \hat{p}$ means that higher reports are more (or less) attractive by an amount proportional to $\theta$.
+where $\varepsilon(\hat{p}) = \theta \hat{p}$ with $\theta \sim N(0, \sigma^2)$. Here $\theta$ is a random shock to the agent's evaluation of candidate reports; the linear specification $\varepsilon(\hat{p}) = \theta \hat{p}$ means that higher reports are more (or less) attractive by an amount proportional to $\theta$. (The Gaussian assumption and the linear specification are both stronger than necessary for the main results; see Section~\ref{sec:robustness} for a robustness analysis.)
 
 Let $V_p(\hat{p}) = p \cdot S(\hat{p}, 1) + (1 - p) \cdot S(\hat{p}, 0)$ denote the expected score when the true probability is $p$ and the agent reports $\hat{p}$. The agent's first-order condition is:
 \[
@@ -358,9 +369,35 @@ The optimal curvature is therefore:
 \end{equation}
 where $H(p)$ is the principal's sensitivity \eqref{eq:H-def} and $\phi(p)$ is the cost of curvature \eqref{eq:phi-def}.
 
-\subsection{Interpretation}
-
 The optimal scoring rule concentrates curvature where errors are costly ($|H(p)|$ large), where the base rate is likely ($f(p)$ large), and where curvature is cheap ($\phi(p)$ small).
+
+\subsection{Existence of the optimal scoring rule}
+
+The pointwise optimization yields an optimal curvature function $g^*(p)$, but we must verify that a strictly proper scoring rule with this curvature actually exists. Specifically, we need to show that integrating $g^*$ twice and imposing the boundary conditions~\eqref{eq:boundary} produces a valid entropy function $G^*$.
+
+By the Green's function representation~\eqref{eq:greens}, define
+\[
+G^*(p) = \int_0^1 K(p,t)\,g^*(t)\,dt,
+\]
+where $K$ is the kernel~\eqref{eq:kernel}. This integral is well-defined and finite for all $p \in [0,1]$ provided $g^*$ is integrable on $(0,1)$, which holds whenever $|H(p)|\,f(p)/\phi(p)$ is bounded (a condition guaranteed by the assumptions in Section~\ref{sec:limited-liability}: $\phi(p) > 0$ on $(0,1)$ and $|H(p)|\,f(p)$ bounded).
+
+We verify that $G^*$ satisfies all requirements for a valid entropy function of a strictly proper scoring rule with limited liability.
+
+\begin{enumerate}
+\item \textbf{Strict convexity.} By construction, $(G^*)''(p) = g^*(p) > 0$ for all $p \in (0,1)$, so $G^*$ is strictly convex.
+
+\item \textbf{Boundary conditions.} As shown in Section~\ref{sec:greens}, any $G$ constructed via~\eqref{eq:greens} automatically satisfies $G(0) + G'(0) = 0$ and $G(1) - G'(1) = 0$. Indeed, from the derivation: $G^*(0) = \int_0^1 K(0,t)\,g^*(t)\,dt = 0$ since $K(0,t) = 0$ for all $t$. From~\eqref{eq:G-from-g}, $(G^*)'(0) = -\int_0^1 t\,g^*(t)\,dt$ and $G^*(0) = \int_0^1 t\,g^*(t)\,dt$, giving $G^*(0) + (G^*)'(0) = 0$. The second boundary condition follows analogously.
+
+\item \textbf{Limited liability.} Since the boundary conditions bind with equality, the reduced constraints~\eqref{eq:ll-reduced} hold: $\min_{\hat{p}} S(\hat{p}, 1) = G^*(0) + (G^*)'(0) = 0 \geq 0$ and $\min_{\hat{p}} S(\hat{p}, 0) = G^*(1) - (G^*)'(1) = 0 \geq 0$. Therefore $S(\hat{p}, x) \geq 0$ for all $\hat{p} \in (0,1)$ and $x \in \{0,1\}$.
+
+\item \textbf{Non-negative expected payments.} Since $K(p,t) \geq 0$ and $g^*(t) > 0$, we have $G^*(p) \geq 0$ for all $p \in [0,1]$, with $G^*(p) > 0$ for $p \in (0,1)$.
+\end{enumerate}
+
+The scoring rule corresponding to $G^*$ is then given by the standard representation~\eqref{eq:standard-rep}:
+\[
+S^*(\hat{p}, 1) = G^*(\hat{p}) + (1-\hat{p})\,(G^*)'(\hat{p}), \qquad S^*(\hat{p}, 0) = G^*(\hat{p}) - \hat{p}\,(G^*)'(\hat{p}).
+\]
+This is a strictly proper scoring rule satisfying limited liability, confirming that the optimal curvature~\eqref{eq:optimal-curvature} is attained by an admissible scoring rule.
 
 \subsection{When is $S_u$ optimal?}
 
@@ -412,7 +449,7 @@ This is maximized at $p = 1/2$ (where $\phi$ is smallest, so curvature is cheape
 
 Under the limited liability constraints~\eqref{eq:boundary}, the cost of curvature $\phi(p)$ remains bounded away from zero at the boundaries: $\phi(0) = \int_0^1 p\,f(p)\,dp = \mathbb{E}[p]$ and $\phi(1) = \int_0^1 (1-p)\,f(p)\,dp = \mathbb{E}[1-p]$, both of which are strictly positive whenever the prior $f$ does not concentrate all mass at a single point. Therefore, provided $|H(p)|\,f(p)$ remains bounded as $p \to 0$ or $p \to 1$, the optimal curvature~\eqref{eq:optimal-curvature} stays finite at the boundaries, and the scoring rule has bounded payments.
 
-\section*{The Boundary problem}
+\section{The Boundary problem}
 
 Under the random utility model, the agent selects a report $\hat{p}$ to maximize their expected score perturbed by linear noise:
 $$\max_{\hat{p}} V_p(\hat{p}) + \theta \hat{p}, \quad \theta \sim N(0, \sigma^2)$$
@@ -421,7 +458,7 @@ Let $\hat{p}_{exact}$ denote the exact unconstrained maximizer, i.e.\ the soluti
 
 Because the Gaussian noise $\theta$ has infinite support, there is a strictly positive probability that $\hat{p}_{exact} \notin [0,1]$ for any base rate $p \in (0,1)$ and noise level $\sigma > 0$. This violates the fundamental requirement that the agent's report must be a valid probability.
 
-\subsection*{Solution: Clipping}
+\subsection{Solution: Clipping}
 
 To resolve this, we explicitly constrain the agent's action space to the valid probability interval $[0, 1]$. Because $S$ is a strictly proper scoring rule, the expected score $V_p(\hat{p})$ is strictly concave in $\hat{p}$. The addition of the linear noise term $\theta\hat{p}$ preserves this strict concavity.
 
@@ -550,8 +587,63 @@ Two patterns stand out. First, the Brier score with a uniform prior --- the most
 
 Second, the spherical score is near-optimal for $\mathrm{Beta}(2,2)$ ($0.8\%$ gain) but not for $\mathrm{Beta}(0.5, 0.5)$ ($13.2\%$ gain). Its curvature peaks at $p = 1/2$ and is lowest at the boundaries, which matches a prior concentrated in the middle but conflicts with one concentrated at the extremes. This illustrates the general principle: the pass-through rule is efficient when its curvature profile $B(p)$ happens to satisfy $B(p)^2\,\phi(p)/f(p) \approx \text{const}$, which depends on the prior.
 
-\begin{comment}
 \section{Log-odds reparametrization}\label{sec:logodds}
+
+A limitation of the probability-space model is that the optimal report $\hat{p} = p - \theta / V_p''(p)$ can fall outside $(0,1)$ for any $\sigma^2 > 0$, since $\theta$ has unbounded support. A natural fix is to reparametrize the agent's choice in log-odds: let $\hat{\ell} = \operatorname{logit}(\hat{p}) \in \mathbb{R}$, and suppose the agent maximizes
+\[
+\tilde{V}_p(\hat{\ell}) + \theta \hat{\ell}, \qquad \hat{\ell} \in \mathbb{R}, \quad \theta \sim N(0, \sigma^2),
+\]
+where $\tilde{V}_p(\hat{\ell}) = V_p(\sigma(\hat{\ell}))$ and $\sigma$ is the logistic function. Since $\hat{\ell}$ ranges over $\mathbb{R}$, the reported probability $\hat{p} = \sigma(\hat{\ell}^*)$ is automatically in $(0,1)$ for every noise realization.
+
+This is not merely a change of variables but a different model: the agent now faces additive noise in log-odds rather than in probability space. The first-order condition $\tilde{V}_p'(\hat{\ell}) + \theta = 0$ and a Taylor expansion around the truthful log-odds $\ell = \operatorname{logit}(p)$ yield the reporting variance
+\begin{equation}\label{eq:var-logodds-summary}
+\operatorname{Var}(\hat{p} - p) \approx \frac{\sigma^2}{G''(p)^2 \cdot p^2(1-p)^2},
+\end{equation}
+which differs from the probability-space formula~\eqref{eq:var-G} by a factor of $1/[p^2(1-p)^2]$. The resulting optimal curvature is $G''(p)^*_{\text{lo}} = G''(p)^*_{\text{prob}} / [p^2(1-p)^2]^{1/3}$, which diverges at the boundaries and demands more curvature everywhere than the probability-space solution.
+
+\subsection{Failure of the log-odds model for bounded scoring rules}
+
+However, the log-odds model has a fundamental defect for bounded scoring rules that does not arise in the probability-space model. The issue is that the ratio of noise to incentive gradient is unbounded near the boundaries for any $\sigma > 0$.
+
+In both models, the agent's first-order condition equates the incentive gradient to the noise: the scoring rule provides a ``restoring force'' that pulls the agent toward the truthful report, while the noise pushes the agent away. The models differ in how strong this restoring force can be.
+
+\paragraph{Probability-space model.} The agent maximizes $V_p(\hat{p}) + \theta\hat{p}$, giving FOC $V_p'(\hat{p}) + \theta = 0$. The incentive gradient $V_p'(\hat{p})$ is defined on all of $(0,1)$ and, for a proper scoring rule, grows in magnitude as $\hat{p}$ moves away from $p$: truthful reporting is a global maximum of $V_p$, so the gradient becomes increasingly negative (positive) as $\hat{p}$ overshoots (undershoots) $p$. For the Brier score, $V_p'(\hat{p}) = 2(p - \hat{p})$, which is linear and unbounded on $\mathbb{R}$. Every noise realization $\theta$ has a unique matching report $\hat{p} = p + \theta/2$. The ``support problem'' --- $\hat{p}$ falling outside $(0,1)$ --- occurs only when $|\theta| > 2\min(p, 1-p)$, i.e., when the noise exceeds the distance from $p$ to the nearest boundary scaled by $|V_p''(p)| = 2$. At $p = 0.05$ with $\sigma = 0.01$, this requires $|\theta| > 0.1 = 10\sigma$, which has probability $2\Phi(-10) < 10^{-23}$.
+
+\paragraph{Log-odds model.} The agent maximizes $\tilde{V}_p(\hat{\ell}) + \theta\hat{\ell}$, giving FOC $\tilde{V}_p'(\hat{\ell}) + \theta = 0$. By the chain rule, $\tilde{V}_p'(\hat{\ell}) = V_p'(\sigma(\hat{\ell})) \cdot \sigma'(\hat{\ell})$. The logistic derivative $\sigma'(\hat{\ell}) = \sigma(\hat{\ell})(1-\sigma(\hat{\ell})) \to 0$ as $\hat{\ell} \to \pm\infty$, so for any bounded scoring rule, $\tilde{V}_p'(\hat{\ell}) \to 0$ at both extremes. The incentive gradient is therefore bounded: it attains a finite maximum $\overline{V}_p = \max_{\hat{\ell}} \tilde{V}_p'(\hat{\ell})$ and a finite minimum $\underline{V}_p = \min_{\hat{\ell}} \tilde{V}_p'(\hat{\ell})$. When $\theta < -\overline{V}_p$, the objective is strictly decreasing in $\hat{\ell}$, driving the report to $\hat{p} = 0$; when $\theta > -\underline{V}_p$, the objective is strictly increasing, driving the report to $\hat{p} = 1$.
+
+The asymmetry between models is sharpest near the boundaries. For the Brier score at $p$ near $0$:
+\begin{align}
+\tilde{V}_p'(\hat{\ell}) &= 2(p - \sigma(\hat{\ell}))\,\sigma(\hat{\ell})(1 - \sigma(\hat{\ell})).
+\end{align}
+The positive part of this gradient (the restoring force pulling the agent back from $\hat{p} = 0$) is maximized for $\sigma(\hat{\ell}) < p$, and scales as $\overline{V}_p = O(p^2)$ as $p \to 0$.\footnote{Writing $s = \sigma(\hat{\ell})$, the positive part is $2(p-s)s(1-s)$ for $s \in (0,p)$. Substituting $s = pt$ for $t \in (0,1)$ gives $2p^2\,t(1-t)(1-pt) \approx 2p^2\,t(1-t)$ for small $p$, maximized at $t = 1/2$ with value $p^2/2$.} Boundary reports at $\hat{p} = 0$ therefore occur whenever $\theta < -\overline{V}_p$, which has probability
+\[
+\Pr(\hat{p} = 0) = \Phi\!\left(\frac{-\overline{V}_p}{\sigma}\right) \;\xrightarrow{p \to 0}\; \Phi(0) = \frac{1}{2},
+\]
+since $\overline{V}_p / \sigma \to 0$ for any fixed $\sigma > 0$. In words: as the true probability approaches $0$, the restoring force in log-odds vanishes, and roughly half of all noise draws push the agent to the extreme report $\hat{p} = 0$, regardless of how small $\sigma$ is.
+
+\paragraph{Quantitative comparison for the Brier score.} Table~\ref{tab:model-comparison} illustrates the contrast. At $p = 0.05$ with $\sigma = 0.01$, the probability-space model produces essentially no boundary reports, while the log-odds model produces boundary reports for nearly half of all draws.
+
+\begin{table}[h]
+\centering
+\caption{Probability of boundary reports at $p = 0.05$ for the Brier score.}
+\label{tab:model-comparison}
+\begin{tabular}{r|cc}
+& Probability space & Log-odds \\
+\hline
+Threshold for boundary & $|\theta| > 2p = 0.1$ & $\theta < -\overline{V}_p \approx -0.001$ \\[4pt]
+$\sigma = 0.001$ & $< 10^{-23}$ & $\approx 16\%$ \\
+$\sigma = 0.01$ & $< 10^{-23}$ & $\approx 46\%$ \\
+$\sigma = 0.1$ & $\approx 32\%$ & $\approx 50\%$ \\
+\end{tabular}
+\end{table}
+
+The pattern generalizes beyond the Brier score. For any scoring rule with bounded payments $S(\hat{p}, x) \in [0, M]$, the expected score $V_p(\hat{p})$ is bounded, so $\tilde{V}_p(\hat{\ell}) = V_p(\sigma(\hat{\ell}))$ is bounded. Since $\tilde{V}_p$ is bounded while $\theta\hat{\ell}$ is linear in $\hat{\ell}$, the objective $\tilde{V}_p(\hat{\ell}) + \theta\hat{\ell}$ is eventually dominated by the noise term for large $|\hat{\ell}|$. The incentive gradient $\tilde{V}_p'$ is therefore bounded, and the same boundary-report phenomenon occurs.
+
+\medskip
+Since the probability-space Taylor approximation performs well numerically (Section~\ref{sec:num-prob-taylor}) and the support issue can be handled by clipping $\hat{p}$ to $[0,1]$, the remainder of the paper works exclusively in probability space.
+
+\begin{comment}
+\section*{Log-odds reparametrization (extended, commented out)}\label{sec:logodds-commented}
 
 A problem with the model in Section~\ref{sec:random-utility} is that $\hat{p} = p - \theta / V_p''(p)$ can fall outside $(0,1)$ for any $\sigma^2 > 0$, since $\theta$ has unbounded support. Working in log-odds space resolves this. The reparametrization also changes the noise structure: instead of additive noise in probability space, the agent now faces additive noise in log-odds. This is a different model, not merely a change of variables, and the optimal scoring rule will differ accordingly.
 
@@ -931,8 +1023,201 @@ The intuition is as follows. Under limited liability, the principal pays for cur
 \label{fig:wager}
 \end{figure}
 
+\section{Tail probability of errors}\label{sec:tail-prob}
+
+The variance formula~\eqref{eq:var-G} characterizes the average squared reporting error under a given scoring rule. For applications where the principal is concerned with the risk of large errors---rather than their average magnitude---the tail probability $\Pr(|\hat{p} - p| > \Delta)$ for a fixed threshold $\Delta > 0$ is a more informative quantity. This section derives the tail probability under the Gaussian approximation, analyzes how it varies across scoring rules and base rates, and formulates an alternative optimization problem in which the principal minimizes the expected tail probability rather than the expected squared loss.
+
+\subsection{Tail probability under the Gaussian approximation}
+
+Under the probability-space random utility model (Section~\ref{sec:random-utility}), the reporting error is approximately $\hat{p} - p \approx \theta / G''(p)$, where $\theta \sim N(0, \sigma^2)$. Therefore $\hat{p} - p$ is approximately $N(0,\, \sigma^2/[G''(p)]^2)$. For any threshold $\Delta > 0$:
+\[
+\Pr(|\hat{p} - p| > \Delta) \approx \Pr\!\left(|\theta| > \Delta\,G''(p)\right) = \Pr\!\left(|Z| > \frac{\Delta\,G''(p)}{\sigma}\right),
+\]
+where $Z = \theta/\sigma \sim N(0,1)$. By the symmetry of the standard normal, $\Pr(|Z| > z) = 2\,\bar{\Phi}(z)$, so
+\begin{equation}\label{eq:tail-prob}
+	\Pr(|\hat{p} - p| > \Delta) = 2\,\bar{\Phi}\!\left(\frac{\Delta\,G''(p)}{\sigma}\right),
+\end{equation}
+where $\bar{\Phi} = 1 - \Phi$ is the standard normal survival function. The tail probability depends on the scoring rule only through $G''(p)$ at the base rate~$p$, via the signal-to-noise ratio
+\begin{equation}\label{eq:z-def}
+	z(p) \equiv \frac{\Delta\,G''(p)}{\sigma},
+\end{equation}
+which measures the error threshold in units of the reporting standard deviation. Larger curvature $G''(p)$ increases $z(p)$, making large errors less likely.
+
+\subsection{Asymptotic behavior and exponential sensitivity}
+
+The exact survival function $\bar{\Phi}(z) = \int_z^{\infty} \varphi(t)\,dt$ has no closed form, but for large $z$ the integrand decays rapidly away from the lower limit, so the integral is dominated by the contribution near $t = z$. The density drops by a factor of $e^{-1}$ over a width of approximately $1/z$, giving the classical approximation known as Mill's ratio: $\bar{\Phi}(z) \sim \varphi(z)/z$. Substituting into~\eqref{eq:tail-prob} and writing out $\varphi(z) = (2\pi)^{-1/2}\,e^{-z^2/2}$:
+\begin{equation}\label{eq:tail-mill}
+	\Pr(|\hat{p} - p| > \Delta) \;\approx\; \frac{2\sigma}{\Delta\,G''(p)\,\sqrt{2\pi}} \;\exp\!\left(-\frac{\Delta^2\,[G''(p)]^2}{2\sigma^2}\right).
+\end{equation}
+The tail probability decays \emph{exponentially} in $[G''(p)]^2$, in contrast to the variance $\sigma^2/[G''(p)]^2$, which decays only polynomially. Doubling the curvature halves the variance but squares the exponent in the tail bound, producing an exponentially larger reduction in tail probability. This distinction is economically significant: when the principal is concerned with catastrophic errors (large~$\Delta$), the curvature profile $G''(p)$ has a much stronger effect than the variance analysis alone would suggest.
+
+For two scoring rules with curvatures $g_1(p)$ and $g_2(p)$ at a fixed base rate~$p$, the ratio of tail probabilities is approximately:
+\begin{equation}\label{eq:tail-ratio}
+	\frac{\Pr(|\hat{p} - p| > \Delta;\, g_1)}{\Pr(|\hat{p} - p| > \Delta;\, g_2)} \;\approx\; \frac{g_2}{g_1}\,\exp\!\left(-\frac{\Delta^2\,(g_1^2 - g_2^2)}{2\sigma^2}\right).
+\end{equation}
+When $g_1 > g_2$, the exponent is negative and grows in magnitude as $\Delta^2$, so the higher-curvature rule's advantage grows exponentially as the error threshold increases.
+
+\subsection{Tail probability under the optimal curvature}
+
+Substituting the optimal curvature~\eqref{eq:optimal-curvature} into~\eqref{eq:z-def}:
+\begin{equation}\label{eq:z-star}
+z^*(p) = \frac{\Delta}{\sigma} \left(\frac{\sigma^2\,|H(p)|\,f(p)}{\alpha\,\phi(p)}\right)^{\!1/3} = \Delta\left(\frac{|H(p)|\,f(p)}{\sigma\,\alpha\,\phi(p)}\right)^{\!1/3}.
+\end{equation}
+The tail probability under the variance-optimal rule is therefore:
+\begin{equation}\label{eq:tail-optimal-rule}
+\Pr(|\hat{p} - p| > \Delta \mid p) = 2\,\bar{\Phi}(z^*(p)).
+\end{equation}
+This is smallest (errors rarest) where $z^*(p)$ is largest, i.e., where $|H(p)|\,f(p)/\phi(p)$ is largest. The tail probability varies across base rates even under the optimal rule: the variance-optimal curvature tolerates higher tail probabilities at base rates where curvature is expensive ($\phi(p)$ large) and achieves lower tail probabilities where curvature is cheap ($\phi(p)$ small).
+
+\subsection{Effect of clipping}
+
+Under the clipped model (Section~\ref{sec:limited-liability}), the agent's actual report is $\hat{p}_c = \max(0, \min(1, \hat{p}_{\mathrm{exact}}))$. Since $\hat{p}_c \in [0,1]$ and $p \in (0,1)$, the clipped error satisfies $|\hat{p}_c - p| \leq \max(p,\, 1-p) < 1$. In particular:
+\begin{equation}\label{eq:tail-clipping-bound}
+\Pr(|\hat{p}_c - p| > \Delta) = 0 \quad \text{for all } \Delta \geq \max(p,\, 1-p).
+\end{equation}
+This hard upper bound does not exist for the unconstrained error $\hat{p}_{\mathrm{exact}} - p$, which has unbounded Gaussian tails. For $\Delta < \min(p, 1-p)$, clipping does not affect the tail probability---errors of magnitude~$\Delta$ occur entirely in the interior of $[0,1]$, so $\hat{p}_c = \hat{p}_{\mathrm{exact}}$ whenever $|\hat{p}_{\mathrm{exact}} - p| \leq \Delta$. For intermediate thresholds $\min(p, 1-p) \leq \Delta < \max(p, 1-p)$, clipping eliminates tail probability on one side (the nearer boundary) while leaving the other side unchanged. In summary:
+\[
+\Pr(|\hat{p}_c - p| > \Delta) \leq \Pr(|\hat{p}_{\mathrm{exact}} - p| > \Delta) = 2\,\bar{\Phi}\!\left(\frac{\Delta\,G''(p)}{\sigma}\right),
+\]
+with strict inequality when $\Delta \geq \min(p, 1-p)$. The Gaussian formula~\eqref{eq:tail-prob} is therefore an upper bound on the true tail probability under clipping.
+
+\begin{comment}
+\subsection{Counterexample}\label{sec:tail-counterexample}
+
+Consider the running counterexample $u(d,x) = -(d-x)^2$ with uniform prior $f \equiv 1$. For the Brier score, $G''(p) = 2$ is constant, so:
+\[
+z_{\mathrm{Brier}} = \frac{2\Delta}{\sigma}, \qquad \Pr(|\hat{p} - p| > \Delta) = 2\,\bar{\Phi}\!\left(\frac{2\Delta}{\sigma}\right) \quad \text{for all } p.
+\]
+The Brier score provides uniform error protection: the tail probability is the same at every base rate.
+
+For the optimal rule, $G''(p)^* = (4\sigma^2/[\alpha(p^2 - p + 1)])^{1/3}$, so:
+\[
+z^*(p) = \frac{\Delta}{\sigma}\left(\frac{4\sigma^2}{\alpha(p^2 - p + 1)}\right)^{\!1/3}.
+\]
+Since $p^2 - p + 1$ is minimized at $p = 1/2$ (with value $3/4$) and maximized at $p \in \{0,1\}$ (with value~$1$), the tail probability under the optimal rule is lowest at $p = 1/2$ and highest near the boundaries. The ratio of tail probabilities at $p = 0$ versus $p = 1/2$ is, for large~$z$:
+\[
+\frac{\Pr(|\hat{p}| > \Delta \mid p = 0)}{\Pr(|\hat{p} - 1/2| > \Delta \mid p = 1/2)} \;\approx\; \left(\frac{4}{3}\right)^{\!1/3} \exp\!\left(\frac{\Delta^2}{2\sigma^2}\left[\left(\frac{4\sigma^2}{3\alpha/4}\right)^{\!2/3} - \left(\frac{4\sigma^2}{\alpha}\right)^{\!2/3}\right]\right).
+\]
+The exponent is positive (curvature is higher at $p = 1/2$), so the optimal rule provides stronger tail protection near $p = 1/2$ at the expense of weaker protection near the boundaries. The variance-optimal rule accepts this non-uniformity because the expected squared loss weights all base rates equally (since $|H(p)| = 2$ is constant), but the cost of curvature~$\phi(p)$ favors concentrating curvature near $p = 1/2$.
+\end{comment}¸
+\subsection{Tail-optimal curvature}\label{sec:tail-optimal}
+
+We now formulate an alternative optimization problem in which the principal minimizes the expected tail probability of the reporting error, rather than the expected squared loss. The objective is:
+\begin{equation}\label{eq:tail-objective}
+\min_{g > 0} \int_0^1 \left[2\,\bar{\Phi}\!\left(\frac{\Delta\,g(p)}{\sigma}\right) f(p) + \alpha\,\phi(p)\,g(p)\right] dp.
+\end{equation}
+The first term is the prior-weighted probability that the error exceeds~$\Delta$; the second is the cost of expected payments, identical to~\eqref{eq:separable}. The integrand is separable in $g$, so we optimize pointwise.
+
+\paragraph{First-order condition.} At each~$p$, differentiate the integrand with respect to $g$:
+\[
+-\frac{2\Delta}{\sigma}\,\varphi\!\left(\frac{\Delta\,g}{\sigma}\right) f(p) + \alpha\,\phi(p) = 0,
+\]
+where $\varphi(z) = (2\pi)^{-1/2}\,e^{-z^2/2}$ is the standard normal density. Substituting $z = \Delta\,g/\sigma$:
+\begin{equation}\label{eq:tail-foc}
+\varphi(z) = \frac{\alpha\,\sigma\,\phi(p)}{2\Delta\,f(p)}.
+\end{equation}
+Since $\varphi(z) = (2\pi)^{-1/2}\,e^{-z^2/2}$, solving for $z$:
+\begin{equation}\label{eq:z-tail}
+z^2 = 2\ln\!\left(\frac{\Delta\,f(p)}{\alpha\,\sigma\,\phi(p)}\sqrt{\frac{2}{\pi}}\right).
+\end{equation}
+A real solution exists when the argument of the logarithm exceeds~$1$, i.e., when the marginal benefit of curvature (measured by $\Delta\,f(p)$) exceeds the marginal cost (measured by $\alpha\,\sigma\,\phi(p)$) by a factor of $\sqrt{\pi/2}$.
+
+\paragraph{Second-order condition.} The second derivative of the integrand with respect to $g$ is:
+\[
+\frac{2\Delta^2}{\sigma^2}\,z\,\varphi(z)\,f(p) > 0 \quad \text{for } z > 0,
+\]
+so the integrand is strictly convex in $g$ for $g > 0$, confirming the first-order condition gives the unique minimum.
+
+\paragraph{Tail-optimal curvature.} The solution is:
+\begin{equation}\label{eq:g-tail-optimal}
+\boxed{G''_{\mathrm{tail}}(p) = \frac{\sigma}{\Delta}\sqrt{2\ln\!\left(\sqrt{\frac{2}{\pi}}\,\frac{\Delta\,f(p)}{\alpha\,\sigma\,\phi(p)}\right)}.}
+\end{equation}
+
+\subsection{Comparison of curvature allocation principles}
+
+\paragraph{Power law versus logarithm.} The variance-optimal curvature scales as a power law in the benefit-to-cost ratio $|H(p)|\,f(p)/\phi(p)$:
+\[
+G''_{\mathrm{var}}(p) \propto \left(\frac{|H(p)|\,f(p)}{\phi(p)}\right)^{1/3}.
+\]
+The tail-optimal curvature scales as the square root of a logarithm:
+\[
+G''_{\mathrm{tail}}(p) \propto \sqrt{\ln\!\left(\frac{f(p)}{\phi(p)}\right)}.
+\]
+The logarithmic dependence is much weaker: the tail-optimal rule distributes curvature far more uniformly across base rates than the variance-optimal rule. The intuition is that tail probability decays exponentially in $[G''(p)]^2$, so the marginal benefit of additional curvature diminishes very rapidly once $z(p)$ is moderately large. Conversely, regions of low curvature contribute disproportionately to the expected tail probability, since $\bar{\Phi}(z)$ is large when $z$ is small. The tail-optimal rule therefore avoids extreme curvature variation: it raises curvature where it is low (at high marginal benefit) and reduces it where it is already high (at low marginal benefit).
+
+\begin{figure}[t]                                                                  \centering                                  \includegraphics[width=\textwidth]{tail_figure.pdf}                                
+\caption{Comparison of variance-optimal and tail-optimal scoring rules for the counterexample ($u(d,x) = -(d-x)^2$, $f \equiv 1$, $\sigma = 1$, $\alpha = 0.01$, $\Delta = 0.1$). (a)~Curvature profiles normalized by their mean: the variance-optimal rule concentrates curvature at $p = 1/2$ where it is cheapest, while the tail-optimal rule distributes curvature more uniformly. (b)~The variance objective integrand $\sigma^2 |H(p)|\,f(p)/[2\,g(p)^2] + \alpha\,\phi(p)\,g(p)$: the variance-optimal rule achieves the lowest combined loss plus payment cost at every base rate. (c)~Tail probability $\Pr(|\hat{p} - p| > \Delta)$: the tail-optimal rule achieves lower and more uniform tail probability. Each rule is optimal according to its own objective.}                                                                                
+\label{fig:tail}                            \end{figure}                                                                       
+\paragraph{Dependence on the threshold.} The variance-optimal curvature does not involve the threshold~$\Delta$. The tail-optimal curvature, on the other hand, depends on~$\Delta$ both in scale and shape: increasing $\Delta$ increases $z^*$ at every~$p$, but the increase is larger where curvature was already low, slightly compressing the curvature variation. In the limit $\Delta \to 0$ (concern about any error), the tail-optimal $z \to 0$ and the approximation breaks down. In the limit $\Delta \to \infty$ (concern only about extreme errors), the logarithmic term dominates and the tail-optimal curvature becomes approximately uniform.
+
+\paragraph{Role of the principal's sensitivity.} The variance-optimal curvature depends on $|H(p)|$, the principal's sensitivity to errors at base rate~$p$, because the expected loss weights squared errors by $|H(p)|$. The tail-optimal curvature as formulated in~\eqref{eq:g-tail-optimal} does not involve $|H(p)|$, because the tail probability $\Pr(|\hat{p} - p| > \Delta)$ counts only whether the error exceeds the threshold, not how costly it is. 
+\begin{comment}
+	content...
+A natural extension is to replace the uniform threshold~$\Delta$ with a state-dependent threshold $\Delta(p) = \sqrt{2L_0/|H(p)|}$, where $L_0$ is a loss threshold: the event $|\hat{p} - p| > \Delta(p)$ is equivalent to the principal's loss exceeding~$L_0$. Under this formulation, $|H(p)|$ re-enters the tail-optimal curvature through the state-dependent threshold.
+\end{comment}
+\section{Robustness of the noise specification}\label{sec:robustness}
+
+The results in Sections~\ref{sec:random-utility}--\ref{sec:limited-liability} rest on two modeling choices: the linear noise specification $\varepsilon(\hat{p}) = \theta\hat{p}$ and the Gaussian distribution of $\theta$. This section shows that neither is essential for the qualitative conclusions.
+
+\subsection{General noise functions}
+
+Replace the linear specification $\varepsilon(\hat{p}) = \theta\hat{p}$ with $\varepsilon(\hat{p}) = \theta \cdot m(\hat{p})$, where $m \colon (0,1) \to \mathbb{R}$ is a smooth, strictly increasing function. The agent maximizes
+\[
+V_p(\hat{p}) + \theta \cdot m(\hat{p}),
+\]
+with first-order condition
+\begin{equation}\label{eq:general-foc}
+V_p'(\hat{p}) + \theta \cdot m'(\hat{p}) = 0.
+\end{equation}
+A first-order Taylor expansion of the left-hand side around $\hat{p} = p$ gives
+\[
+V_p''(p)\,(\hat{p} - p) + \theta \cdot m'(p) \approx 0,
+\]
+so that
+\begin{equation}\label{eq:general-approx}
+\hat{p} - p \approx -\frac{\theta \cdot m'(p)}{V_p''(p)} = \frac{\theta \cdot m'(p)}{G''(p)},
+\end{equation}
+where the last equality uses $V_p''(p) = -G''(p)$ (Remark~\ref{rem:curvature-connection}). The reporting variance becomes
+\begin{equation}\label{eq:general-var}
+\operatorname{Var}(\hat{p} - p) \approx \frac{\sigma^2\,[m'(p)]^2}{[G''(p)]^2}.
+\end{equation}
+
+The factor $[m'(p)]^2$ depends on the noise specification and the base rate, but \emph{not} on the scoring rule. It enters the principal's expected loss~\eqref{eq:expected-loss} as a multiplicative term:
+\[
+\mathbb{E}[L \mid p] \approx -\frac{\sigma^2\,[m'(p)]^2\,H(p)}{2\,[G''(p)]^2}.
+\]
+Since the additional factor $[m'(p)]^2$ is a fixed function of~$p$, it does not affect the separability of the objective~\eqref{eq:separable} in~$g$. The pointwise optimization proceeds exactly as in Section~\ref{sec:separable}, with $|H(p)|\,f(p)$ replaced by $|H(p)|\,f(p)\,[m'(p)]^2$.
+
+\begin{proposition}[General noise optimum]\label{prop:general-noise}
+Under the noise specification $\varepsilon(\hat{p}) = \theta \cdot m(\hat{p})$ with $\mathbb{E}[\theta] = 0$ and $\operatorname{Var}(\theta) = \sigma^2$, the optimal curvature under limited liability is
+\begin{equation}\label{eq:general-optimal-curvature}
+G''(p)^* = \left(\frac{\sigma^2\,|H(p)|\,f(p)\,[m'(p)]^2}{\alpha\,\phi(p)}\right)^{\!1/3},
+\end{equation}
+where $\phi(p)$ is the cost of curvature~\eqref{eq:phi-def}. Setting $m(\hat{p}) = \hat{p}$ (i.e., $m'(p) = 1$) recovers~\eqref{eq:optimal-curvature}.
+\end{proposition}
+
+The qualitative interpretation is unchanged: the optimal rule concentrates curvature where errors are costly ($|H(p)|$ large), base rates likely ($f(p)$ large), noise sensitivity high ($m'(p)$ large), and curvature cheap ($\phi(p)$ small). In particular, the structure of the optimization---separable objective, cubic pointwise problem, Green's function representation---is entirely preserved. The linear specification $m(\hat{p}) = \hat{p}$ is the canonical simplest case of this family.
+
+\subsection{Relaxing the Gaussian assumption}\label{sec:relax-gaussian}
+
+The core optimization results (Sections~\ref{sec:principal-opt}--\ref{sec:limited-liability}) use only two properties of~$\theta$:
+\begin{enumerate}
+\item $\mathbb{E}[\theta] = 0$ (unbiased noise), which ensures $\mathbb{E}[\hat{p} - p] \approx 0$;
+\item $\mathbb{E}[\theta^2] = \sigma^2$ (finite variance), which determines the expected squared error via~\eqref{eq:var-G}.
+\end{enumerate}
+No higher moments or distributional shape enters the derivation of the optimal curvature~\eqref{eq:optimal-curvature} or its generalization~\eqref{eq:general-optimal-curvature}. The Taylor approximation $\hat{p} - p \approx \theta/G''(p)$ is valid under any distribution of~$\theta$ with finite variance, provided $\sigma/G''(p)$ is small enough that higher-order terms are negligible.
+
+Therefore, the main results can be stated under the weaker moment conditions $\mathbb{E}[\theta] = 0$ and $\mathbb{E}[\theta^2] = \sigma^2$, without requiring Gaussianity.
+
+The Gaussian assumption becomes necessary only in Section~\ref{sec:tail-prob}, where the explicit distributional form $\hat{p} - p \sim N(0,\, \sigma^2/[G''(p)]^2)$ is used to compute tail probabilities via the normal survival function~$\bar{\Phi}$. For non-Gaussian~$\theta$, the tail analysis would require either (i)~the specific distribution of~$\theta$, or (ii)~distribution-free bounds such as Chebyshev's inequality, which gives the weaker bound
+\[
+\Pr(|\hat{p} - p| > \Delta) \leq \frac{\sigma^2}{[G''(p)]^2\,\Delta^2}.
+\]
+This preserves the qualitative dependence on $G''(p)$ but replaces the exponential tail decay of the Gaussian case with a polynomial bound.
+
+\begin{comment}
 \section*{Notes for continuation}
-\textbf{Status.} Sections 1--6 set up the model: we define the principal-agent problem, the decision-matched scoring rule $S_u$, prove properness, introduce the random utility model with Gaussian noise, and formulate the principal's optimization problem. Section~\ref{sec:limited-liability} solves the optimal scoring rule under limited liability ($S \geq 0$), yielding a closed-form solution for optimal curvature \eqref{eq:optimal-curvature}. Section~\ref{sec:wager} extends the solution to allow a wager, where the agent risks losing a stake $W$ in exchange for stronger incentives.
+\textbf{Status.} Sections 1--6 set up the model: we define the principal-agent problem, the decision-matched scoring rule $S_u$, prove properness, introduce the random utility model with Gaussian noise, and formulate the principal's optimization problem. Section~\ref{sec:limited-liability} solves the optimal scoring rule under limited liability ($S \geq 0$), yielding a closed-form solution for optimal curvature \eqref{eq:optimal-curvature}. Section~\ref{sec:wager} extends the solution to allow a wager, where the agent risks losing a stake $W$ in exchange for stronger incentives. Section~\ref{sec:tail-prob} analyzes tail probabilities of reporting errors.
 
 \textbf{Key results so far.}
 \begin{itemize}
@@ -943,12 +1228,13 @@ The intuition is as follows. Under limited liability, the principal pays for cur
 \item In the counterexample ($u(d,x) = -(d-x)^2$, $f \equiv 1$), the Brier score's constant curvature is suboptimal: it underallocates curvature near $p = 1/2$, where curvature is cheapest under limited liability.
 \item \textbf{Numerical verification} (Section~\ref{sec:numerical}): the Taylor approximation is accurate to within $5\%$ for $\sigma \leq 0.1$.
 \item \textbf{Wager extension} (Section~\ref{sec:wager}): the optimal curvature under a wager $S \geq -W$ takes the same form, with $\alpha\,\phi(p)$ replaced by the effective cost $\tilde{\phi}(p) = \alpha\,\phi(p) - \lambda\,K(p^*,p)$. The wager preferentially reduces the cost of curvature near the boundaries, shifting the optimal curvature profile from center-peaked to boundary-peaked as $W$ increases (Figure~\ref{fig:wager}).
+\item \textbf{Tail probability} (Section~\ref{sec:tail-prob}): The tail probability $\Pr(|\hat{p} - p| > \Delta) = 2\bar{\Phi}(\Delta G''(p)/\sigma)$ decays exponentially in $[G''(p)]^2$. The tail-optimal curvature $G''_{\mathrm{tail}}(p) \propto \sqrt{\ln(f(p)/\phi(p))}$ is much more uniform than the variance-optimal curvature, reflecting the exponential sensitivity of tail probabilities to curvature.
 \end{itemize}
 
 \textbf{Open questions and next steps.}
 \begin{enumerate}
-\item \textbf{Tail probability of errors.} For any error threshold $\delta > 0$, calculate the probability $\Pr(|\hat{p} - p| > \delta)$ under a given scoring rule $S$. Investigate how this tail probability varies across scoring rules and base rates $p$.
 \item \textbf{Expected gain for the principal.} Compute how the principal's expected gain changes under different scoring rules, assuming a uniform prior $p \sim U[0,1]$. A baseline scenario to model is whether a principal, when facing a forecasting problem themselves, optimally assigns the exact same scoring rule they face to the subcontracted agent.
 \end{enumerate}
+\end{comment}
 
 \end{document}

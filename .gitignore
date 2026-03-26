@@ -1,5 +1,8 @@
-main.out
-main.log
-main.out
-main.synctex.gz
-main.aux
+# LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.synctex.gz
+
+# Resources (reference papers etc.)
+resources/

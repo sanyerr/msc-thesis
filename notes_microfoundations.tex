@@ -1,0 +1,104 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+
+\title{Notes: Micro-foundations for the Random Utility Model}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+These notes outline concrete directions for strengthening the micro-foundations and justification of the random utility model used in the paper.
+
+\section{Derive the model from a control cost framework}
+
+The most natural foundation is \emph{costly precision}: the agent can reduce reporting noise by exerting cognitive effort. Instead of assuming $\varepsilon(\hat{p}) = \theta\hat{p}$, start from:
+
+The agent chooses a \emph{reporting strategy}---a distribution $\mu$ over reports---to maximize expected score minus a cost of precision:
+\[
+\max_{\mu} \int V_p(\hat{p})\, d\mu(\hat{p}) - c \cdot D(\mu \| \mu_0),
+\]
+where $D$ is a divergence penalty and $\mu_0$ is a default (e.g., uniform) distribution.
+
+When $D$ is the KL divergence, this is exactly the \emph{rational inattention} framework (Sims 2003, Mat\v{e}jka \& McKay 2015). The solution is $\mu^*(\hat{p}) \propto \mu_0(\hat{p}) \exp(V_p(\hat{p})/c)$, which concentrates around $p$ as $c \to 0$. For large $c$ (high cost of precision), a second-order expansion around the mode recovers a Gaussian approximation whose variance is inversely proportional to $|V_p''(p)|$---exactly our formula. This gives us:
+\begin{itemize}
+\item A \textbf{behavioral parameter} $c$ (cost of cognitive effort) that maps to $\sigma^2$.
+\item A reason \textbf{why} different scoring rules produce different precision: steeper payoff landscapes are easier to optimize under limited cognitive resources.
+\item A direct connection to Mat\v{e}jka \& McKay (2015), which is well-cited in both economics and decision theory.
+\end{itemize}
+
+\section{Justify the linear noise form (or eliminate it)}
+
+The $\varepsilon(\hat{p}) = \theta\hat{p}$ specification is the weakest link because:
+\begin{enumerate}
+\item It breaks symmetry---noise at $\hat{p} = 0.9$ is $9\times$ the noise at $\hat{p} = 0.1$ in absolute terms.
+\item It is not invariant to affine transformations of the report space.
+\item The choice of $m(\hat{p}) = \hat{p}$ vs.\ $m(\hat{p}) = \hat{p}^2$ vs.\ anything else is arbitrary.
+\end{enumerate}
+
+Three ways to fix this:
+
+\subsection{Option 1: Constant perturbation (simplest)}
+
+Use $\varepsilon(\hat{p}) = \theta$ (additive noise in the FOC directly), i.e., the agent solves $V_p'(\hat{p}) + \theta = 0$. This is equivalent to our model with $m(\hat{p}) = \hat{p}$ when we go through the Taylor expansion, since $m'(p) = 1$ just normalizes $\sigma$. But presenting it as ``the agent's perceived gradient is the true gradient plus noise'' is much more interpretable. It says: the agent correctly identifies the \emph{direction} of improvement but has noisy perception of \emph{how much} improvement each report offers.
+
+\subsection{Option 2: Derive $m$ from the control cost model (recommended)}
+
+Under the rational inattention derivation in Section~1, the Gaussian approximation around the mode naturally produces a specific noise structure determined by the curvature of $V_p$ itself. The noise is not ``added'' to the objective---it emerges from the optimization under cognitive constraints. This eliminates the need to specify $m$ at all.
+
+\subsection{Option 3: Show invariance}
+
+The existing robustness section already shows the optimal curvature under general $m$ is $(|H(p)| f(p) [m'(p)]^2 / \phi(p))^{1/3}$. We can frame this positively: the \emph{curvature allocation principle} (concentrate curvature where errors are costly, likely, and cheap) holds for \textbf{any} noise specification. The exponent $1/3$ and the role of $\phi(p)$ are universal. Only the relative weighting across base rates shifts with $m'(p)$. So the qualitative message is robust even though the exact profile is not.
+
+\medskip
+\noindent\textbf{Recommendation:} Use Option~2 as the primary framing, with Option~3 as a robustness result.
+
+\section{Formalize the QRE connection properly}
+
+The current QRE citation is misleading. QRE is a discrete-action equilibrium concept with logit choice probabilities. Our model is closer to:
+\begin{itemize}
+\item \textbf{Smoothed best response} (Fudenberg \& Levine 1995)---agents best-respond to a perturbed payoff.
+\item \textbf{Stochastic choice with continuous actions} (Fudenberg, Iijima \& Strzalecki 2015)---axiomatizes when stochastic choice admits a perturbed-utility representation.
+\item \textbf{Quantal response in continuous action spaces} (McKelvey \& Palfrey 1998 discuss this extension briefly, but it is underdeveloped).
+\end{itemize}
+
+We should cite QRE as \emph{motivation} (experimental evidence that people do not perfectly best-respond, and that payoff structure affects behavior even when the optimal action set is the same), but be precise that our model is a \textbf{continuous-action additive perturbation model}, not logit QRE. Then cite the axiomatic foundations that justify this class of models.
+
+\section{Address the $\sigma$ parameter}
+
+The paper treats $\sigma$ as a fixed primitive. For a journal, we need to discuss:
+
+\begin{itemize}
+\item \textbf{Is $\sigma$ the same across agents?} If agents differ in $\sigma$, the optimal rule depends on the population distribution. This connects to mechanism design with heterogeneous rationality.
+\item \textbf{Does $\sigma$ depend on the scoring rule?} Under the control cost model, the agent \emph{chooses} their precision level, so $\sigma$ is endogenous. If the agent can reduce noise by exerting more effort, and effort is costly, we get a two-stage problem: the principal designs the scoring rule, then the agent chooses effort \emph{and} report. This could either strengthen or complicate the results.
+\item \textbf{Can $\sigma$ be estimated?} If we had data from Palfrey \& Wang, could we back out $\sigma$ from the observed dispersion of reports? A quick calibration exercise (even in a paragraph) would massively increase the paper's credibility.
+\end{itemize}
+
+\section{Suggested structure for the revised section}
+
+\begin{enumerate}
+\item \textbf{Start with the behavioral premise} (1 paragraph): agents do not perfectly maximize expected score; experimental evidence from Palfrey \& Wang, and the broader QRE/stochastic choice literature, supports this.
+
+\item \textbf{Formal model via control costs} (1--2 paragraphs): derive the Gaussian approximation from the rational inattention / costly precision framework. This gives the model a principled origin.
+
+\item \textbf{Resulting reporting variance} (existing material): $\operatorname{Var}(\hat{p} - p) \approx \sigma^2 / [G''(p)]^2$, now with $\sigma^2$ interpreted as the equilibrium noise level given cognitive cost $c$.
+
+\item \textbf{Robustness} (move existing Section~11 material here or reference it): the curvature allocation principle is preserved under general noise specifications, non-Gaussian distributions, etc.
+\end{enumerate}
+
+This would transform the model from ``assume this noise structure'' to ``this noise structure emerges from a standard bounded-rationality framework,'' which is a much stronger foundation for a journal.
+
+\section{Key references to add}
+
+\begin{itemize}
+\item Sims, C.\ A.\ (2003). Implications of rational inattention. \emph{Journal of Monetary Economics}, 50(3), 665--690.
+\item Mat\v{e}jka, F.\ \& McKay, A.\ (2015). Rational inattention to discrete choices: A new foundation for the multinomial logit model. \emph{American Economic Review}, 105(1), 272--298.
+\item Fudenberg, D., Iijima, R., \& Strzalecki, T.\ (2015). Stochastic choice and revealed perturbed utility. \emph{Econometrica}, 83(6), 2371--2409.
+\item Fudenberg, D.\ \& Levine, D.\ K.\ (1995). Consistency and cautious fictitious play. \emph{Journal of Economic Dynamics and Control}, 19(5--7), 1065--1089.
+\item Savage, L.\ J.\ (1971). Elicitation of personal probabilities and expectations. \emph{Journal of the American Statistical Association}, 66(336), 783--801.
+\item Gneiting, T.\ \& Raftery, A.\ E.\ (2007). Strictly proper scoring rules, prediction, and estimation. \emph{Journal of the American Statistical Association}, 102(477), 359--378.
+\end{itemize}
+
+\end{document}
