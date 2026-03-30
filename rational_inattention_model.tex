@@ -1,9 +1,10 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
-\usepackage{amsmath,amssymb,amsthm}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
 \usepackage{hyperref}
 
 \newtheorem{proposition}{Proposition}
+\newtheorem{lemma}[proposition]{Lemma}
 \newtheorem{remark}{Remark}
 
 \title{Rational Inattention Model for Scoring Rules}
@@ -122,11 +123,12 @@ where $V_p(\hat{p}) = p\,S(\hat{p},1) + (1-p)\,S(\hat{p},0)$ has a unique maximu
 
 \subsection{Gaussian approximation}\label{sec:gaussian-approx}
 
-For small $c$ (i.e., when information is cheap and the agent acquires high-precision signals), $\pi^*(\hat{p} \mid p)$ is sharply peaked around the maximum of $V_p$ at $\hat{p} = p$. We can approximate $V_p$ by its second-order Taylor expansion around $p$:
-\[
-V_p(\hat{p}) \approx V_p(p) + \frac{1}{2}\,V_p''(p)\,(\hat{p} - p)^2.
-\]
-The first-order term $V_p'(p)(\hat{p}-p)$ vanishes because $V_p'(p) = 0$ by properness. To evaluate the second derivative $V_p''(p)$, recall that every strictly proper scoring rule admits a representation in terms of a convex function $G$ (the \emph{entropy function} or \emph{expected score function}):
+We now show that for small information cost $c$, the optimal reporting distribution $\pi^*(\hat{p} \mid p)$ is well approximated by a Gaussian. The argument proceeds in three steps: (i) a Taylor expansion of the expected score $V_p$ around its maximum, (ii) control of the resulting approximation error on the full domain $[0,1]$, and (iii) moment computation under the approximate density.
+
+\medskip
+
+\textbf{Step 1: Taylor expansion of $V_p$.}
+Recall that every strictly proper scoring rule admits a representation in terms of a convex function $G$ (the \emph{entropy function} or \emph{expected score function}):
 \[
 S(\hat{p}, 1) = G(\hat{p}) + G'(\hat{p})(1 - \hat{p}), \qquad S(\hat{p}, 0) = G(\hat{p}) - G'(\hat{p})\,\hat{p}.
 \]
@@ -136,53 +138,121 @@ V_p(\hat{p}) = p\,S(\hat{p},1) + (1-p)\,S(\hat{p},0) = G(\hat{p}) + G'(\hat{p})(
 \]
 Differentiating with respect to $\hat{p}$:
 \[
-V_p'(\hat{p}) = G'(\hat{p}) + \frac{d}{d\hat{p}}\!\big[G'(\hat{p})(p - \hat{p})\big] = G'(\hat{p}) + G''(\hat{p})(p - \hat{p}) - G'(\hat{p}) = G''(\hat{p})(p - \hat{p}),
+V_p'(\hat{p}) = G'(\hat{p}) + \frac{d}{d\hat{p}}\!\big[G'(\hat{p})(p - \hat{p})\big] = G''(\hat{p})(p - \hat{p}),
 \]
 which confirms $V_p'(p) = 0$. Differentiating once more:
 \[
 V_p''(\hat{p}) = G'''(\hat{p})(p - \hat{p}) - G''(\hat{p}).
 \]
-Evaluating at $\hat{p} = p$, the first term vanishes and we obtain:
-\[
-V_p''(p) = -G''(p).
-\]
-Since $V_p$ has a strict maximum at $p$, we have $G''(p) > 0$. Substituting into the Gibbs distribution and writing $\delta = \hat{p} - p$:
-\begin{equation}\label{eq:gaussian-approx}
-\pi^*(\hat{p} \mid p) \propto q(\hat{p})\,\exp\!\left(-\frac{G''(p)}{2c}\,\delta^2\right).
-\end{equation}
-It remains to show that the endogenous marginal $q(\hat{p})$ does not affect the first-order term in the small-$c$ expansion of the variance. Expand $q$ around $\hat{p} = p$:
-\[
-q(\hat{p}) = q(p) + q'(p)\,\delta + O(\delta^2).
-\]
-We can drop the $O(\delta^2)$ remainder: under the Gaussian kernel, the typical size of $\delta$ is $O(\sqrt{c})$, so $\delta^2 = O(c)$, and the $O(\delta^2)$ term in $q$ produces only an $O(c)$ multiplicative correction to the density. As we will see below, this affects the variance only at order $O(c^2)$, which we are already neglecting. Substituting into~\eqref{eq:gaussian-approx}:
-\[
-\pi^*(\hat{p} \mid p) \propto \big[q(p) + q'(p)\,\delta\big]\,\exp\!\left(-\frac{G''(p)}{2c}\,\delta^2\right).
-\]
-The leading term $q(p)$ does not depend on $\hat{p}$, so we can factor it out of the proportionality (it is absorbed into the normalizing constant $Z(p)$):
-\[
-\pi^*(\hat{p} \mid p) \propto \left(1 + \frac{q'(p)}{q(p)}\,\delta\right)\,\exp\!\left(-\frac{G''(p)}{2c}\,\delta^2\right).
-\]
-We now compute the mean and variance of $\delta$ under this density. Write $a = G''(p)/(2c)$ for brevity. We will use the standard Gaussian integral identities:
-\[
-\int_{-\infty}^{\infty} e^{-a\delta^2}\,d\delta = \sqrt{\frac{\pi}{a}}, \qquad \int_{-\infty}^{\infty} \delta^2\,e^{-a\delta^2}\,d\delta = \frac{1}{2a}\sqrt{\frac{\pi}{a}},
-\]
-and $\int_{-\infty}^{\infty} \delta\,e^{-a\delta^2}\,d\delta = 0$ by antisymmetry (the integrand is an odd function).
+Evaluating at $\hat{p} = p$, the first term vanishes and we obtain $V_p''(p) = -G''(p)$. Since $V_p$ has a strict maximum at $p$, we have $G''(p) > 0$.
 
-For the mean:
+By Taylor's theorem with integral remainder, for $\delta = \hat{p} - p$:
+\begin{equation}\label{eq:taylor-vp}
+V_p(p + \delta) = V_p(p) - \tfrac{1}{2}\,G''(p)\,\delta^2 + E(\delta),
+\end{equation}
+where the remainder satisfies
 \[
-\langle \delta \rangle = \frac{\displaystyle\int \delta\,\left(1 + \frac{q'(p)}{q(p)}\,\delta\right)\,e^{-a\delta^2}\,d\delta}{\displaystyle\int \left(1 + \frac{q'(p)}{q(p)}\,\delta\right)\,e^{-a\delta^2}\,d\delta}.
+E(\delta) = \int_0^1 (1-t)\big[V_p''(p + t\delta) - V_p''(p)\big]\,\delta^2\,dt.
 \]
-In the numerator, $\int \delta\,e^{-a\delta^2}\,d\delta = 0$ by antisymmetry, and the remaining term is $\frac{q'(p)}{q(p)}\int \delta^2\,e^{-a\delta^2}\,d\delta = \frac{q'(p)}{q(p)} \cdot \frac{1}{2a}\sqrt{\frac{\pi}{a}}$. In the denominator, the antisymmetric term $\frac{q'(p)}{q(p)}\int \delta\,e^{-a\delta^2}\,d\delta = 0$ vanishes, leaving $\sqrt{\frac{\pi}{a}}$. Therefore:
+
+We now state the approximation result precisely.
+
+\begin{proposition}[Gaussian approximation]\label{prop:gaussian-approx}
+Let $S$ be a strictly proper scoring rule whose entropy function $G$ is $C^3$ on $(0,1)$, and let $p \in (0,1)$. Assume:
+\begin{enumerate}
+\item[\textup{(A1)}] $G''(p) > 0$;
+\item[\textup{(A2)}] $G'''$ is bounded on a neighborhood of $p$: there exist $\eta > 0$ and $M < \infty$ such that $|G'''(\hat{p})| \leq M$ for all $\hat{p} \in (p - \eta, p + \eta) \cap (0,1)$;
+\item[\textup{(A3)}] The endogenous marginal $q$ is positive and $C^2$ on a neighborhood of $p$.
+\end{enumerate}
+Then as $c \to 0^+$:
+\begin{align}
+\mathbb{E}[\hat{p} - p \mid p] &= \frac{q'(p)}{q(p)} \cdot \frac{c}{G''(p)} + O(c^{3/2}), \label{eq:mean-expansion}\\
+\operatorname{Var}(\hat{p} - p \mid p) &= \frac{c}{G''(p)} + O(c^{3/2}). \label{eq:var-expansion}
+\end{align}
+Moreover, the total variation distance between $\pi^*(\cdot \mid p)$ and the Gaussian $N\!\big(0,\, c/G''(p)\big)$ is $O(\sqrt{c})$ as $c \to 0^+$.
+\end{proposition}
+
+\begin{proof}
+Write $a = G''(p)/(2c)$ and $\sigma^2 = c/G''(p) = 1/(2a)$.
+
+\medskip
+\textit{Step 2: Domain truncation and tail control.}
+Define the truncated domain $I_c = [p - c^{1/3}, p + c^{1/3}] \cap [0,1]$. We show that the mass outside $I_c$ is exponentially negligible.
+
+By assumption (A2), for $|\delta| \leq \eta$ the remainder in~\eqref{eq:taylor-vp} satisfies $|E(\delta)| \leq M|\delta|^3/6$. For $|\delta| > \eta$, the strict properness of $S$ guarantees $V_p(p+\delta) < V_p(p)$; moreover, by continuity and compactness of $[0,1]$, we have $V_p(p+\delta) \leq V_p(p) - r$ for some $r = r(\eta, p) > 0$ whenever $|\delta| \geq \eta$.
+
+For $c$ small enough that $c^{1/3} < \eta$, consider the tail integral:
 \[
-\langle \delta \rangle = \frac{q'(p)}{q(p)} \cdot \frac{1}{2a} = \frac{q'(p)}{q(p)} \cdot \frac{c}{G''(p)} = O(c).
+T_c \coloneqq \int_{[0,1] \setminus I_c} q(\hat{p})\,\exp\!\big(V_p(\hat{p})/c\big)\,d\hat{p}.
 \]
-To obtain the variance, recall that $\operatorname{Var}(\delta) = \langle \delta^2 \rangle - \langle \delta \rangle^2$, so we also need the second moment $\langle \delta^2 \rangle$. Applying the same identities to the numerator: $\int \delta^2\,e^{-a\delta^2}\,d\delta = \frac{1}{2a}\sqrt{\frac{\pi}{a}}$, while $\frac{q'}{q}\int\delta^3\,e^{-a\delta^2}\,d\delta = 0$ by antisymmetry. Thus $\langle \delta^2 \rangle = \frac{1}{2a} = c/G''(p)$ (plus $O(c^2)$ corrections from the higher-order terms in $q$ that we dropped). The variance is then:
+Splitting into $\{|\delta| \in [c^{1/3}, \eta]\}$ and $\{|\delta| > \eta\}$: on the first region, $V_p(\hat{p}) \leq V_p(p) - \frac{1}{2}G''(p)\delta^2 + M|\delta|^3/6 \leq V_p(p) - \frac{1}{4}G''(p)\delta^2$ for $c$ small enough (since $|\delta| \leq \eta$ and $M|\delta|/3 \leq G''(p)/2$ when $\eta \leq 3G''(p)/(2M)$). On the second region, $V_p(\hat{p}) \leq V_p(p) - r$. Therefore:
 \[
-\operatorname{Var}(\delta) = \langle \delta^2 \rangle - \langle \delta \rangle^2 = \frac{c}{G''(p)} + O(c^2) - O(c^2) = \frac{c}{G''(p)} + O(c^2).
+T_c \leq \bar{q}\!\left[\int_{|\delta| \geq c^{1/3}} \exp\!\Big(-\frac{G''(p)}{4c}\delta^2\Big)\,d\delta + \exp(-r/c)\right],
 \]
-Note that $q$ enters this expression only through the mean shift $\langle \delta \rangle = \frac{q'(p)}{q(p)} \cdot \frac{c}{G''(p)}$, and this affects the variance only via the $-\langle \delta \rangle^2$ term, which is of order $c^2$. The first-order term $c/G''(p)$ is the same regardless of the form of $q$. For small $c$ we therefore have:
+where $\bar{q} = \sup_{[0,1]} q$. The Gaussian tail integral satisfies $\int_{|\delta| \geq c^{1/3}} \exp(-a\delta^2/2)\,d\delta \leq 2\exp(-a c^{2/3}/2)/\sqrt{a}$ by Mill's inequality. Since $a = G''(p)/(4c)$, the exponent is $-G''(p)c^{-1/3}/8$, which diverges as $c \to 0$. Both terms are therefore $o(c^N)$ for every $N > 0$.
+
+Meanwhile, the mass on $I_c$ satisfies:
+\[
+\int_{I_c} q(\hat{p})\,\exp(V_p(\hat{p})/c)\,d\hat{p} \geq \underline{q}\,\exp(V_p(p)/c)\int_{-\sigma}^{\sigma}\exp(-a\delta^2)\,d\delta,
+\]
+where $\underline{q} = \inf_{I_c} q > 0$ for small $c$, and $\sigma = c^{1/3} \gg \sqrt{c/G''(p)}$. The inner integral is $\sqrt{\pi/a}\,(1 - o(c^N))$. Thus $T_c / \int_{I_c} = o(c^N)$ for every $N$, and all moments of $\pi^*(\cdot \mid p)$ may be computed on $I_c$ up to superpolynomially small error.
+
+\medskip
+\textit{Step 3: Moment computation on $I_c$.}
+On $I_c$, where $|\delta| \leq c^{1/3}$, the remainder satisfies $|E(\delta)| \leq M c/6$ (since $|\delta|^3 \leq c$). Write:
+\[
+\frac{V_p(p+\delta)}{c} = \frac{V_p(p)}{c} - a\delta^2 + \frac{E(\delta)}{c}.
+\]
+Since $|E(\delta)/c| \leq M|\delta|^3/(6c)$ and $|\delta| \leq c^{1/3}$, we have $|E(\delta)/c| \leq M/(6c^0) = M/6$, but more precisely, for typical $\delta \sim \sqrt{c}$: $|E(\delta)/c| = O(c^{1/2})$. To make this rigorous, write:
+\[
+\exp\!\big(E(\delta)/c\big) = 1 + E(\delta)/c + O\big((E(\delta)/c)^2\big).
+\]
+On $I_c$, the remainder $E(\delta)/c$ admits the bound $|E(\delta)/c| \leq M|\delta|^3/(6c)$. Under the Gaussian weight $e^{-a\delta^2}$, the moments of $|\delta|^k$ are $O(c^{k/2})$, so $\langle |E(\delta)/c| \rangle_{a} = O(c^{1/2})$ and $\langle (E(\delta)/c)^2 \rangle_a = O(c)$.
+
+The conditional density on $I_c$ is therefore:
+\begin{equation}\label{eq:gaussian-approx}
+\pi^*(\hat{p} \mid p) \propto q(p+\delta)\,\big(1 + E(\delta)/c + O(c)\big)\,\exp(-a\delta^2).
+\end{equation}
+Now expand $q$ around $p$. By assumption (A3), $q(p + \delta) = q(p)\big[1 + \beta\,\delta + O(\delta^2)\big]$ where $\beta = q'(p)/q(p)$. Combining with the remainder expansion:
+\[
+\pi^*(\hat{p} \mid p) \propto \big(1 + \beta\,\delta + O(\delta^2) + O(|\delta|^3/c)\big)\,\exp(-a\delta^2).
+\]
+We compute moments term by term, using the standard Gaussian integral identities on $\mathbb{R}$ (the extension from $I_c$ to $\mathbb{R}$ introduces only superpolynomially small error by Step~2):
+\[
+\int_{-\infty}^{\infty} e^{-a\delta^2}\,d\delta = \sqrt{\frac{\pi}{a}}, \quad \int_{-\infty}^{\infty} \delta^2\,e^{-a\delta^2}\,d\delta = \frac{1}{2a}\sqrt{\frac{\pi}{a}}, \quad \int_{-\infty}^{\infty} \delta\,e^{-a\delta^2}\,d\delta = 0,
+\]
+the last by antisymmetry. All odd-power integrals $\int \delta^{2k+1} e^{-a\delta^2}\,d\delta = 0$.
+
+\textit{Mean.} The normalizing constant is $Z = \sqrt{\pi/a}\,\big(1 + O(c)\big)$. The first moment integral gives:
+\[
+\int \delta\,(1 + \beta\delta)\,e^{-a\delta^2}\,d\delta = \beta \cdot \frac{1}{2a}\sqrt{\frac{\pi}{a}},
+\]
+where the $\int \delta\,e^{-a\delta^2}\,d\delta = 0$ term vanishes. The $O(\delta^2)$ and $O(|\delta|^3/c)$ perturbations contribute $O(c^{3/2})$ to the mean (the $O(\delta^2)$ term yields an odd integral $\int \delta \cdot \delta^2 \,e^{-a\delta^2}\,d\delta = 0$; the cross-terms with $E(\delta)/c$ contribute at most $O(c^{1/2}) \cdot O(c) = O(c^{3/2})$ by Cauchy--Schwarz). Therefore:
+\[
+\mathbb{E}[\delta] = \frac{\beta}{2a} + O(c^{3/2}) = \frac{q'(p)}{q(p)} \cdot \frac{c}{G''(p)} + O(c^{3/2}).
+\]
+
+\textit{Second moment.} Similarly:
+\[
+\int \delta^2\,(1 + \beta\delta)\,e^{-a\delta^2}\,d\delta = \frac{1}{2a}\sqrt{\frac{\pi}{a}} + 0,
+\]
+where the $\beta\int \delta^3 e^{-a\delta^2}\,d\delta = 0$ by antisymmetry. The perturbation terms contribute $O(c^{3/2})$ to $\langle \delta^2 \rangle$ by the same reasoning. Thus $\langle \delta^2 \rangle = 1/(2a) + O(c^{3/2}) = c/G''(p) + O(c^{3/2})$.
+
+\textit{Variance.} Combining:
+\[
+\operatorname{Var}(\delta) = \langle \delta^2 \rangle - \langle \delta \rangle^2 = \frac{c}{G''(p)} + O(c^{3/2}) - O(c^2) = \frac{c}{G''(p)} + O(c^{3/2}).
+\]
+
+\textit{Total variation bound.} Let $\varphi_\sigma$ denote the density of $N(0, \sigma^2)$ with $\sigma^2 = c/G''(p)$. On $I_c$, the density ratio $\pi^*(p + \delta \mid p)/\varphi_\sigma(\delta)$ equals $1 + \beta\delta + O(\delta^2) + O(|\delta|^3/c)$ times a normalizing correction of $1 + O(c)$. Under $\varphi_\sigma$, the expected absolute perturbation is $\langle |\beta\delta| \rangle_{\varphi_\sigma} = |\beta|\sqrt{2\sigma^2/\pi} = O(\sqrt{c})$. By Scheff\'e's identity, $d_{\mathrm{TV}}(\pi^*, \varphi_\sigma) = \frac{1}{2}\int |\pi^* - \varphi_\sigma| \leq O(\sqrt{c})$.
+\end{proof}
+
+\begin{remark}
+Assumptions (A1)--(A2) are satisfied by all commonly used proper scoring rules. For the log score, $G(p) = -p\ln p - (1-p)\ln(1-p)$ gives $G''(p) = 1/[p(1-p)]$ and $G''' = (2p-1)/[p(1-p)]^2$, both bounded on any compact subset of $(0,1)$. For the Brier score, $G(p) = p(1-p)$ gives $G''(p) = 2$ and $G''' = 0$. Assumption (A3) is a mild regularity condition on the fixed-point marginal $q$, which inherits smoothness from the Gibbs kernel.
+\end{remark}
+
+The key consequence is:
 \begin{equation}\label{eq:ri-gaussian}
-\hat{p} - p \;\sim\; N\!\left(0,\; \frac{c}{G''(p)}\right) \quad \text{(approximately)}.
+\hat{p} - p \;\sim\; N\!\left(0,\; \frac{c}{G''(p)}\right) + O_{\mathrm{TV}}(\sqrt{c}) \quad \text{as } c \to 0^+.
 \end{equation}
 
 \subsection{Reporting variance}
@@ -492,44 +562,159 @@ When $R^*_1 > R^*_2$, scoring rule $S_1$ provides exponentially better tail prot
 
 Suppose the principal is herself a forecaster, scored by a strictly proper scoring rule $S_0$ with entropy function $G_0$. She delegates the estimation of $p$ to a sub-agent, whom she pays according to a scoring rule $S$ of her choice. Her utility function is $u(d,x) = S_0(d,x)$, where $d$ is the report she submits to the meta-principal. Since $S_0$ is strictly proper, the principal's optimal decision given the agent's report is simply $d^*(\hat{p}) = \hat{p}$, so $(d^*)'(\hat{p}) = 1$.
 
-The principal's sensitivity~\eqref{eq:H-def} then simplifies to $H(p) = u''(d^*(p),p) = -G_0''(p)$, so $|H(p)| = G_0''(p)$. Write $B(p) \equiv G_0''(p)$ for the curvature of the principal's own scoring rule.
+The principal's sensitivity~\eqref{eq:H-def} then simplifies to $H(p) = u''(d^*(p),p) = -G_0''(p)$, so $|H(p)| = G_0''(p)$.
 
-A natural benchmark is the \emph{pass-through rule}: the principal assigns the sub-agent a scaled version of her own rule $S_0$. Scaling $S_0$ by $a > 0$ scales the curvature by $a$, so the pass-through rule has $g(p) = a\,B(p)$ for some $a > 0$ chosen optimally. We compare the principal's net utility under this rule against the pointwise-optimal curvature~\eqref{eq:ri-optimal-curvature}.
+A natural benchmark is the \emph{pass-through rule}: the principal assigns the sub-agent a scaled version of her own rule $S_0$. Scaling $S_0$ by $a > 0$ scales the curvature by $a$, so the pass-through rule has $g(p) = a\,G_0''(p)$ for some $a > 0$ chosen optimally. We compare the principal's net utility under this rule against the pointwise-optimal curvature~\eqref{eq:ri-optimal-curvature}.
 
 \subsection{Optimal rule value}
 
-At the optimum $g^* = \sqrt{c\,B\,f/(2\alpha\phi)}$, the integrand evaluates to (writing $A = c\,|H|\,f/2 = c\,B\,f/2$ and $C = \alpha\phi$):
+The principal's net utility under curvature profile $g$ is given by the objective~\eqref{eq:ri-objective}:
 \[
-h(g^*) = -\frac{A}{g^*} - C\,g^* = -\frac{A}{\sqrt{A/C}} - C\sqrt{A/C} = -2\sqrt{AC}.
+V(g) = \int_0^1 \left[-\frac{c\,|H(p)|\,f(p)}{2\,g(p)} - \alpha\,\phi(p)\,g(p)\right] dp.
+\]
+In the subcontracting setting $|H(p)| = G_0''(p)$, so substituting the pointwise-optimal curvature $g^*(p) = \sqrt{c\,G_0''(p)\,f(p)/(2\alpha\,\phi(p))}$ from~\eqref{eq:ri-optimal-curvature} into the integrand (writing $A = c\,G_0''\,f/2$ and $C = \alpha\phi$):
+\[
+-\frac{A}{g^*} - C\,g^* = -\frac{A}{\sqrt{A/C}} - C\sqrt{A/C} = -2\sqrt{AC}.
 \]
 Therefore:
 \begin{equation}\label{eq:ri-V-opt}
-V^*_{\mathrm{RI}} = -2\int_0^1 \sqrt{\frac{c\,B(p)\,f(p)}{2} \cdot \alpha\,\phi(p)} \; dp = -\sqrt{2c\alpha} \int_0^1 \sqrt{B(p)\,f(p)\,\phi(p)} \; dp.
+V^*_{\mathrm{RI}} = -2\int_0^1 \sqrt{\frac{c\,G_0''(p)\,f(p)}{2} \cdot \alpha\,\phi(p)} \; dp = -\sqrt{2c\alpha} \int_0^1 \sqrt{G_0''(p)\,f(p)\,\phi(p)} \; dp.
 \end{equation}
 
 \subsection{Pass-through rule value}
 
-With $g = a\,B$:
+Under the pass-through rule, $g(p) = a\,G_0''(p)$. Substituting into the objective:
 \[
-V(a) = \int_0^1 \left[-\frac{c\,B\,f}{2a\,B} - \alpha\,\phi\,a\,B\right]dp = -\frac{c}{2a}\underbrace{\int_0^1 f(p)\,dp}_{= 1} \;-\; \alpha\,a\underbrace{\int_0^1 \phi(p)\,B(p)\,dp}_{I_2}.
+V(a) = \int_0^1 \left[-\frac{c\,G_0''\,f}{2a\,G_0''} - \alpha\,\phi\,a\,G_0''\right]dp = -\frac{c}{2a}\underbrace{\int_0^1 f(p)\,dp}_{= 1} \;-\; \alpha\,a\int_0^1 \phi(p)\,G_0''(p)\,dp.
 \]
-(Here we used $|H| = B$ to cancel $B$ in the first term.) Optimizing over $a$:
+(Here $|H| = G_0''$ cancels in the first term.) Differentiating with respect to $a$ and setting to zero:
 \[
-a^* = \sqrt{\frac{c}{2\alpha\,I_2}}, \qquad V_{\mathrm{pass}} = -\sqrt{2c\alpha\,I_2}.
+V'(a) = \frac{c}{2a^2} - \alpha\int_0^1 \phi\,G_0''\,dp = 0 \qquad\Longrightarrow\qquad a^* = \sqrt{\frac{c}{2\alpha\int_0^1 \phi\,G_0''\,dp}}.
+\]
+Substituting back:
+\[
+V_{\mathrm{pass}} = V(a^*) = -\sqrt{2c\alpha\int_0^1 \phi(p)\,G_0''(p)\,dp}.
 \]
 
 \subsection{Efficiency ratio}
 
+Since both $V^*_{\mathrm{RI}}$ and $V_{\mathrm{pass}}$ are negative, with $V^*_{\mathrm{RI}}$ closer to zero, define the ratio
 \begin{equation}\label{eq:ri-efficiency}
-\eta_{\mathrm{RI}} = \frac{V^*_{\mathrm{RI}}}{V_{\mathrm{pass}}} = \frac{\displaystyle\int_0^1 \sqrt{B(p)\,f(p)\,\phi(p)}\;dp}{\displaystyle\sqrt{\int_0^1 \phi(p)\,B(p)\,dp}},
+\eta_{\mathrm{RI}} = \frac{V^*_{\mathrm{RI}}}{V_{\mathrm{pass}}} = \frac{\displaystyle\int_0^1 \sqrt{G_0''(p)\,f(p)\,\phi(p)}\;dp}{\displaystyle\sqrt{\int_0^1 \phi(p)\,G_0''(p)\,dp}},
 \end{equation}
-where we used $\int f = 1$. To verify that $\eta \leq 1$ (i.e., the pass-through rule is weakly worse than the optimum), we need to show:
+where we used $\int f = 1$. We now show that $\eta \in (0,1]$. Positivity is immediate since $G_0'', f, \phi > 0$. For the upper bound, we need:
 \[
-\left(\int_0^1 \sqrt{B\,f\,\phi}\;dp\right)^2 \leq \int_0^1 B\,\phi\,dp.
+\left(\int_0^1 \sqrt{G_0''\,f\,\phi}\;dp\right)^2 \leq \int_0^1 G_0''\,\phi\,dp.
 \]
-This follows from the Cauchy--Schwarz inequality: writing $\int \sqrt{B\,f\,\phi}\,dp = \int \sqrt{f} \cdot \sqrt{B\,\phi}\,dp$ and applying $\int uv \leq \sqrt{\int u^2} \cdot \sqrt{\int v^2}$ with $u = \sqrt{f}$ and $v = \sqrt{B\,\phi}$ gives $\int \sqrt{B\,f\,\phi}\,dp \leq \sqrt{\int f\,dp} \cdot \sqrt{\int B\,\phi\,dp} = \sqrt{\int B\,\phi\,dp}$. Squaring yields the desired inequality. Equality holds if and only if $\sqrt{f} \propto \sqrt{B\,\phi}$, i.e., $B(p)\,\phi(p)/f(p) = \text{const}$, which is exactly the condition~\eqref{eq:ri-Su-condition} for $S_u$ to be optimal.
+Write $\int \sqrt{G_0''\,f\,\phi}\,dp = \int \sqrt{f} \cdot \sqrt{G_0''\,\phi}\,dp$ and apply the Cauchy--Schwarz inequality with $u = \sqrt{f}$ and $v = \sqrt{G_0''\,\phi}$:
+\[
+\int \sqrt{G_0''\,f\,\phi}\,dp \leq \sqrt{\int f\,dp} \cdot \sqrt{\int G_0''\,\phi\,dp} = \sqrt{\int G_0''\,\phi\,dp}.
+\]
+Squaring yields the desired inequality, so $\eta \leq 1$. Equality holds if and only if $\sqrt{f} \propto \sqrt{G_0''\,\phi}$, i.e., $G_0''(p)\,\phi(p)/f(p) = \text{const}$, which is exactly the condition~\eqref{eq:ri-Su-condition} for $S_u$ to be optimal. The fractional improvement from using the optimal rule is $1 - \eta$.
 
-As in the additive noise model, $\eta$ is \textbf{parameter-free}: it depends only on the shape functions $B$, $f$, and $\phi$, not on $c$ or $\alpha$.
+The efficiency ratio $\eta$ is \textbf{parameter-free}: it depends only on the shape functions $G_0''$, $f$, and $\phi$, not on $c$ or $\alpha$. The percentage gain from optimization is the same regardless of the attention cost or the cost of payments.
+
+
+\section{Extension to continuous outcomes}\label{sec:continuous}
+
+The preceding analysis assumes a binary event $X \in \{0,1\}$, where the agent reports a single probability $\hat{p} = \Pr(X=1)$. Many forecasting problems involve continuous outcomes: predicting a temperature, a stock return, or an unemployment rate. We now extend the rational inattention framework to this setting, focusing on the elicitation of the mean. The main finding is that the entire framework---Gibbs solution, Gaussian approximation, variance formula, optimal curvature, and curvature allocation principle---carries over with essentially no change. The binary case is a special case of the continuous one.
+
+\subsection{Consistent scoring functions for the mean}\label{sec:mean-scoring}
+
+Let $Y$ be a continuous random variable with support $[a,b]$ and mean $\mu = \mathbb{E}[Y]$, where $\mu \in [a,b]$. A principal wishes to elicit the mean from an agent. The agent reports $\hat{\mu} \in [a,b]$ and receives a payment $S(\hat{\mu}, y)$ when the outcome $y$ is realized. The scoring function $S$ is \emph{strictly consistent for the mean} if the agent's expected score $V_\mu(\hat{\mu}) \equiv \mathbb{E}[S(\hat{\mu}, Y) \mid \mu]$ is uniquely maximized at $\hat{\mu} = \mu$ for every distribution on $[a,b]$ with mean $\mu$.
+
+Savage (1971) and Gneiting (2011) characterize such scoring functions. A scoring function $S(\hat{\mu}, y)$ is strictly consistent for the mean (over all distributions on $[a,b]$) if and only if it takes the form
+\begin{equation}\label{eq:mean-representation}
+S(\hat{\mu}, y) = G(\hat{\mu}) + G'(\hat{\mu})(y - \hat{\mu}) + h(y),
+\end{equation}
+where $G: [a,b] \to \mathbb{R}$ is a strictly convex function (the \emph{entropy function}), $G'$ denotes its derivative, and $h: [a,b] \to \mathbb{R}$ is an arbitrary function of the outcome alone. The expected score is then:
+\begin{equation}\label{eq:mean-expected-score}
+V_\mu(\hat{\mu}) = G(\hat{\mu}) + G'(\hat{\mu})(\mu - \hat{\mu}) + \mathbb{E}[h(Y)].
+\end{equation}
+Since $\mathbb{E}[h(Y)]$ does not depend on the report $\hat{\mu}$, it is irrelevant for the agent's optimization and can be absorbed into a constant. The remaining terms $G(\hat{\mu}) + G'(\hat{\mu})(\mu - \hat{\mu})$ are \textbf{identical in form} to the binary case, with $\mu$ replacing $p$.
+
+Differentiating~\eqref{eq:mean-expected-score} with respect to $\hat{\mu}$:
+\begin{equation}\label{eq:mean-Vprime}
+V_\mu'(\hat{\mu}) = G''(\hat{\mu})(\mu - \hat{\mu}),
+\end{equation}
+which confirms $V_\mu'(\mu) = 0$ and
+\begin{equation}\label{eq:mean-Vpp}
+V_\mu''(\mu) = -G''(\mu).
+\end{equation}
+The expected score has a strict maximum at $\hat{\mu} = \mu$ with curvature determined by $G''(\mu) > 0$, exactly as in the binary case.
+
+\begin{remark}[The binary case as a special case]\label{rem:binary-special}
+When $Y \in \{0,1\}$ is binary with $\Pr(Y=1) = p$, the mean is $\mu = p$. A scoring function $S(\hat{\mu}, y)$ consistent for the mean of a binary variable is exactly a proper scoring rule $S(\hat{p}, x)$. Representation~\eqref{eq:mean-representation} reduces to:
+\[
+S(\hat{p}, 1) = G(\hat{p}) + G'(\hat{p})(1 - \hat{p}) + h(1), \qquad S(\hat{p}, 0) = G(\hat{p}) - G'(\hat{p})\hat{p} + h(0),
+\]
+which is the standard entropy function representation of proper scoring rules (with the constants $h(1)$ and $h(0)$ absorbed by convention). The entire binary framework is a special case of mean elicitation with $[a,b] = [0,1]$ and $Y \in \{0,1\}$.
+\end{remark}
+
+\begin{remark}[Examples of consistent scoring functions for the mean]
+The \emph{squared error} score $S(\hat{\mu}, y) = -(y - \hat{\mu})^2$ corresponds to $G(\hat{\mu}) = \hat{\mu}^2$, $h(y) = -y^2$, giving constant curvature $G''(\hat{\mu}) = 2$---the direct analogue of the Brier score.
+\end{remark}
+
+
+\subsection{Transfer of results to mean elicitation}
+
+Since the expected score~\eqref{eq:mean-expected-score} has the same functional form $G(\hat{\mu}) + G'(\hat{\mu})(\mu - \hat{\mu})$ as in the binary case, every result from the preceding sections carries over with $\mu$ replacing $p$ and $[a,b]$ replacing $[0,1]$: the Gibbs solution (Proposition~\ref{prop:gibbs}), the Gaussian approximation with variance $c/G''(\mu)$, the exponential tail bound (Proposition~\ref{prop:tail-bound}), and the optimal curvature formula~\eqref{eq:ri-optimal-curvature}. The efficiency analysis of the pass-through rule likewise applies verbatim with $G_0''(\mu)$ replacing $G_0''(p)$.
+
+The only changes are mechanical. Under limited liability with $h(y) = 0$, the boundary conditions become:
+\begin{equation}\label{eq:bc-general}
+G(a) + G'(a)(b - a) = 0, \qquad G(b) - G'(b)(b - a) = 0,
+\end{equation}
+which for $[a,b] = [0,1]$ reduce to the binary conditions $G(0) + G'(0) = 0$ and $G(1) - G'(1) = 0$. The Green's function for integrating $G''(\mu) = g(\mu)$ subject to~\eqref{eq:bc-general} is:
+\begin{equation}\label{eq:kernel-general}
+K_{[a,b]}(\mu, t) = \frac{1}{b-a}\begin{cases} (\mu - a)(b - t), & t \leq \mu, \\ (t - a)(b - \mu), & t > \mu, \end{cases}
+\end{equation}
+so that $G(\mu) = \int_a^b K_{[a,b]}(\mu, t)\, g(t)\, dt$, generalizing~\eqref{eq:greens}. The optimal curvature is then:
+\begin{equation}\label{eq:optimal-curvature-mean}
+G''(\mu)^* = \sqrt{\frac{c\,|H(\mu)|\,f(\mu)}{2\alpha\,\phi(\mu)}},
+\end{equation}
+where $\phi(\mu) = \int_a^b K_{[a,b]}(t, \mu)\, f(t)\, dt$, exactly as before.
+
+
+\subsection{Beyond the mean: quantile elicitation}\label{sec:quantile}
+
+The mean is not the only functional of interest. In risk management and distributional forecasting, quantiles are often the primary target. The rational inattention framework applies, but the structure differs in important ways.
+
+Let $F$ denote the CDF of $Y$ and $f_Y$ its density. For the $\tau$-quantile $q_\tau$ (where $F(q_\tau) = \tau$), Gneiting (2011) shows that for any strictly increasing function $g$, the negatively oriented scoring function (loss)
+\[
+L(\hat{q}, y) = (\mathbf{1}\{y \leq \hat{q}\} - \tau)\big(g(\hat{q}) - g(y)\big)
+\]
+is strictly consistent: the expected loss $\mathbb{E}[L(\hat{q}, Y)]$ is minimized at $\hat{q} = q_\tau$. To align with the rest of the paper (where the agent maximizes a score), we work with the negated score $S(\hat{q}, y) = -L(\hat{q}, y)$. The expected score is:
+\[
+V_{q_\tau}(\hat{q}) = -\mathbb{E}\big[(\mathbf{1}\{Y \leq \hat{q}\} - \tau)(g(\hat{q}) - g(Y))\big],
+\]
+Writing out the expectation and splitting by whether $y \leq \hat{q}$:
+\[
+V(\hat{q}) = -\int_a^{\hat{q}} (g(\hat{q}) - g(y))\,f_Y(y)\,dy + \tau\big(g(\hat{q}) - \mathbb{E}[g(Y)]\big).
+\]
+Differentiating with respect to $\hat{q}$ using the Leibniz rule $\frac{d}{d\hat{q}} \int_a^{\hat{q}} h(\hat{q}, y)\,dy = h(\hat{q}, \hat{q}) + \int_a^{\hat{q}} \frac{\partial}{\partial \hat{q}} h(\hat{q}, y)\,dy$ on the first term:
+\[
+\frac{d}{d\hat{q}} \int_a^{\hat{q}} (g(\hat{q}) - g(y))\,f_Y(y)\,dy = \underbrace{(g(\hat{q}) - g(\hat{q}))\,f_Y(\hat{q})}_{= 0} + \int_a^{\hat{q}} g'(\hat{q})\,f_Y(y)\,dy = g'(\hat{q})\,F(\hat{q}).
+\]
+Combining with the second term:
+\[
+V'(\hat{q}) = -g'(\hat{q})\,F(\hat{q}) + \tau\,g'(\hat{q}) = -(F(\hat{q}) - \tau)\,g'(\hat{q}),
+\]
+confirming $V'(q_\tau) = 0$ since $F(q_\tau) = \tau$. Differentiating again:
+\[
+V''(\hat{q}) = -f_Y(\hat{q})\,g'(\hat{q}) - (F(\hat{q}) - \tau)\,g''(\hat{q}).
+\]
+At $\hat{q} = q_\tau$ the second term vanishes, giving:
+\begin{equation}\label{eq:quantile-curvature}
+V''(q_\tau) = -f_Y(q_\tau)\,g'(q_\tau),
+\end{equation}
+which is strictly negative (confirming that the truth is a strict maximum). The reporting variance under rational inattention for quantile forecasts is therefore:
+\begin{equation}\label{eq:quantile-variance}
+\operatorname{Var}(\hat{q} - q_\tau \mid q_\tau) \approx \frac{c}{f_Y(q_\tau)\,g'(q_\tau)}.
+\end{equation}
+
+This differs from the mean case in two respects. First, the variance depends on the \emph{density at the quantile} $f_Y(q_\tau)$---quantiles in regions where the density is high are easier to estimate precisely, because even a small shift in the report crosses many probability mass units. Second, the principal chooses the increasing function $g$, with $g'$ playing the role of curvature. Increasing $g'$ at a given quantile value sharpens incentives there, analogously to increasing $G''$ in the mean case.
+
+The principal's optimization is more complex than in the mean case: the expected payment $\mathbb{E}[S(q_\tau, Y)]$ depends on $g$ through the full distribution of $Y$ (not just the quantile being elicited), so the separability that made the mean case tractable does not carry over directly. We leave the full analysis of optimal scoring functions for quantile elicitation as an open direction for future work.
 
 
 \section{Discussion}
