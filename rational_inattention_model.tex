@@ -456,6 +456,14 @@ S^*(\hat{p},1) = G^*(\hat{p}) + (1-\hat{p})\,(G^*)'(\hat{p}), \qquad S^*(\hat{p}
 \]
 This is a strictly proper scoring rule satisfying limited liability, confirming that the optimal curvature~\eqref{eq:ri-optimal-curvature} is attained by an admissible scoring rule.
 
+\begin{remark}[Uniqueness]\label{rem:uniqueness}
+The optimal scoring rule $S^*$ is unique within the class of limited-liability strictly proper scoring rules. The objective~\eqref{eq:ri-objective} is strictly concave in $g(p)$ at each $p$ (since $h''(g) < 0$), so the pointwise maximizer $g^*$ is unique. The Green's function map $g \mapsto G$ is linear and injective, and the two boundary conditions pin down the affine degrees of freedom that are otherwise free for proper scoring rules. There is therefore no residual indeterminacy.
+\end{remark}
+
+\begin{remark}[The optimal rule is generically novel]\label{rem:novel}
+The optimal curvature $g^*(p) \propto \sqrt{|H(p)|\,f(p)/\phi(p)}$ depends on three problem-specific functions and does not, in general, belong to any standard parametric family of scoring rules. For instance, the power family $G''(p) \propto [p(1-p)]^{\beta-2}$ (which includes the Brier score at $\beta = 2$ and the logarithmic score as $\beta \to 1$) requires $|H(p)|\,f(p)/\phi(p) \propto [p(1-p)]^{2\beta-4}$, a condition that generically fails. Even in the simplest counterexample ($u(d,x) = -(d-x)^2$, $f \equiv 1$), the optimal curvature $g^*(p) \propto (p^2 - p + 1)^{-1/2}$ is not of this form. The optimal scoring rule is thus tailored to the specific decision problem and prior, rather than belonging to the standard toolkit of off-the-shelf rules.
+\end{remark}
+
 
 \section{Tail probability of large errors}\label{sec:ri-tail}
 
@@ -596,7 +604,7 @@ Substituting back:
 V_{\mathrm{pass}} = V(a^*) = -\sqrt{2c\alpha\int_0^1 \phi(p)\,G_0''(p)\,dp}.
 \]
 
-\subsection{Efficiency ratio}
+\subsection{Efficiency ratio}\label{sec:efficiency}
 
 Since both $V^*_{\mathrm{RI}}$ and $V_{\mathrm{pass}}$ are negative, with $V^*_{\mathrm{RI}}$ closer to zero, define the ratio
 \begin{equation}\label{eq:ri-efficiency}
@@ -715,6 +723,56 @@ which is strictly negative (confirming that the truth is a strict maximum). The 
 This differs from the mean case in two respects. First, the variance depends on the \emph{density at the quantile} $f_Y(q_\tau)$---quantiles in regions where the density is high are easier to estimate precisely, because even a small shift in the report crosses many probability mass units. Second, the principal chooses the increasing function $g$, with $g'$ playing the role of curvature. Increasing $g'$ at a given quantile value sharpens incentives there, analogously to increasing $G''$ in the mean case.
 
 The principal's optimization is more complex than in the mean case: the expected payment $\mathbb{E}[S(q_\tau, Y)]$ depends on $g$ through the full distribution of $Y$ (not just the quantile being elicited), so the separability that made the mean case tractable does not carry over directly. We leave the full analysis of optimal scoring functions for quantile elicitation as an open direction for future work.
+
+
+\section{Approximation by parametric families}\label{sec:approximation}
+
+The optimal scoring rule $S^*$ is tailored to the specific decision problem $u$, prior $f$, and cost parameters $c$ and $\alpha$, and does not generally belong to any standard parametric family (Remark~\ref{rem:novel}). In practice, a forecasting platform may prefer to deploy a rule from a simple parametric class. This section quantifies the welfare cost of such restrictions and identifies when simple rules suffice.
+
+\subsection{Best constant curvature (scaled Brier)}
+
+The simplest restriction is $g(p) = g_0$ (constant curvature), corresponding to a scaled Brier score. Substituting into the objective~\eqref{eq:ri-objective}:
+\[
+V(g_0) = -\frac{c\,\bar{H}}{2\,g_0} - \alpha\,\bar{\phi}\,g_0,
+\]
+where $\bar{H} = \int_0^1 |H(p)|\,f(p)\,dp$ and $\bar{\phi} = \int_0^1 \phi(p)\,dp$. Optimizing over $g_0$ yields:
+\begin{equation}\label{eq:best-brier}
+g_0^* = \sqrt{\frac{c\,\bar{H}}{2\alpha\,\bar{\phi}}}, \qquad V^*_{\mathrm{Brier}} = -2\sqrt{\frac{c\,\alpha\,\bar{H}\,\bar{\phi}}{2}}.
+\end{equation}
+
+Since both values are negative (with $V^*$ closer to zero), we define the efficiency ratio as in Section~\ref{sec:efficiency}:
+\begin{equation}\label{eq:brier-efficiency}
+\eta_{\mathrm{Brier}} = \frac{V^*}{V^*_{\mathrm{Brier}}} = \frac{\int_0^1 \sqrt{|H(p)|\,f(p)\,\phi(p)}\,dp}{\sqrt{\bar{H}\,\bar{\phi}}}.
+\end{equation}
+By Cauchy--Schwarz (with $u = \sqrt{|H|f}$ and $v = \sqrt{\phi}$), $\eta_{\mathrm{Brier}} \in (0,1]$, with equality if and only if $|H(p)|\,f(p)/\phi(p)$ is constant in $p$---exactly the condition for the Brier score to be optimal. This ratio is parameter-free: it depends on the decision problem and prior, but not on $c$ or $\alpha$.
+
+\subsection{Best power-family rule}\label{sec:power-approx}
+
+A richer one-parameter family is the \emph{power class}: $g(p) = A\,[p(1-p)]^{-\gamma}$ for $\gamma \in [0,1)$ and $A > 0$. This nests the Brier score ($\gamma = 0$) and approaches the logarithmic score as $\gamma \to 1$. For each $\gamma$, substituting into~\eqref{eq:ri-objective} and optimizing over $A$ gives:
+\[
+A^*(\gamma) = \sqrt{\frac{c\int_0^1 |H(p)|\,f(p)\,[p(1-p)]^{\gamma}\,dp}{2\alpha\int_0^1 \phi(p)\,[p(1-p)]^{-\gamma}\,dp}},
+\]
+and the corresponding net utility:
+\begin{equation}\label{eq:power-value}
+V^*_{\mathrm{power}}(\gamma) = -2\sqrt{\frac{c\,\alpha}{2}} \sqrt{\int_0^1 |H(p)|\,f(p)\,[p(1-p)]^{\gamma}\,dp \;\cdot\; \int_0^1 \phi(p)\,[p(1-p)]^{-\gamma}\,dp}.
+\end{equation}
+The optimal $\gamma^*$ minimizes $V^*_{\mathrm{power}}(\gamma)$ in magnitude, i.e., minimizes the product of the two integrals. This is a one-dimensional problem that can be solved numerically.
+
+\subsection{Examples}\label{sec:approx-examples}
+
+We evaluate the efficiency ratios for the counterexample $u(d,x) = -(d-x)^2$ (so $|H(p)| = 2$) under different priors.
+
+\paragraph{Uniform prior.} With $f \equiv 1$, $\phi(p) = (p^2 - p + 1)/2$. The averages are $\bar{H} = 2$ and $\bar{\phi} = 5/12$. Numerically, $\int_0^1 \sqrt{p^2-p+1}\,dp \approx 0.9120$, giving:
+\[
+\eta_{\mathrm{Brier}} = \frac{0.9120}{\sqrt{5/6}} \approx 0.999.
+\]
+The welfare loss from using the Brier score is approximately $0.1\%$---negligible. This is because $\phi(p) = (p^2-p+1)/2$ varies only between $3/8$ and $1/2$ under the uniform prior, so the ratio $|H|\,f/\phi$ is nearly constant and the Brier score is nearly optimal. The best power-family rule ($\gamma^* \approx 0$) offers no meaningful improvement.
+
+\paragraph{Concentrated priors.} The approximation gap grows substantially when the prior concentrates probability mass unevenly. With a $\mathrm{Beta}(2,2)$ prior ($f(p) = 6p(1-p)$, peaked at $1/2$), the Brier efficiency drops to $\eta_{\mathrm{Brier}} \approx 0.95$, a $5\%$ welfare loss. With a $\mathrm{Beta}(5,5)$ prior (more sharply peaked), $\eta_{\mathrm{Brier}} \approx 0.79$---a $21\%$ welfare loss. Asymmetric priors such as $\mathrm{Beta}(2,5)$ yield similar gaps ($\eta_{\mathrm{Brier}} \approx 0.73$).
+
+The power family $g(p) = A[p(1-p)]^{-\gamma}$ provides little additional improvement in these cases: the best power rule achieves essentially the same efficiency as the Brier score. This is because the variation in $|H|\,f/\phi$ is driven by the interaction of the prior $f$ with the cost-of-curvature function $\phi(p) = \int K(t,p)\,f(t)\,dt$, which depends on the prior in a way that $[p(1-p)]^{-\gamma}$ cannot approximate. The notable exception is the $\mathrm{Beta}(1/2,1/2)$ prior, where $f(p) \propto [p(1-p)]^{-1/2}$ and the power family achieves $\eta_{\mathrm{power}} \approx 1.00$---the optimal curvature itself lies (approximately) in the power class.
+
+\paragraph{When does the gap matter?} The efficiency ratio $\eta_{\mathrm{Brier}}$ is determined by the variation of $|H(p)|\,f(p)/\phi(p)$ across $p$. When this ratio is nearly constant---as with the uniform prior and symmetric loss---the Brier score is effectively optimal and the choice of scoring rule is inconsequential beyond properness. When the ratio varies substantially---due to concentrated or asymmetric priors, or non-constant $|H(p)|$ from asymmetric loss functions---the full optimal rule provides a meaningful welfare improvement that simple parametric families cannot capture.
 
 
 \section{Discussion}
